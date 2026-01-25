@@ -1,5 +1,4 @@
 from django.db import models
-from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
@@ -22,20 +21,19 @@ class Courses(models.Model):
 
     @property
     def replace_youtube_link(self):
+        import re
         if not self.video_url:
             return ""
-
-        # This handles standard watch?v= links, mobile youtu.be links, and shorts
-        if 'watch?v=' in self.video_url:
-            video_id = self.video_url.split('watch?v=')[1].split('&')[0]
-        elif 'youtu.be/' in self.video_url:
-            video_id = self.video_url.split('youtu.be/')[1].split('?')[0]
-        elif 'shorts/' in self.video_url:
-            video_id = self.video_url.split('shorts/')[1].split('?')[0]
-        else:
-            return self.video_url # Fallback
-
-        return f"https://www.youtube.com/embed/{video_id}"
+        
+        # This regex finds the 11-character Video ID regardless of the link type
+        regex = r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})"
+        match = re.search(regex, self.video_url)
+        
+        if match:
+            video_id = match.group(1)
+            return f"https://www.youtube.com/embed/{video_id}"
+        
+        return self.video_url
     
     def __str__(self):
         return self.title

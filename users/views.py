@@ -5,6 +5,7 @@ from .forms import CustomSignupForm
 from .models import Profile, Courses
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 # Create your views here.
 
@@ -42,7 +43,7 @@ def login(request):
             user = form.get_user()
             auth_login(request, user)
             if user.profile.is_student:
-                return redirect('users:profile', username=user.username)
+                return redirect('users:course_list', username=user.username)
             else:
                 return redirect('users:profile', username=user.username)
     else:
@@ -63,7 +64,6 @@ def profile_view(request, username):
         'published_course': published_course
 
     }
-
     return render(request, 'users/profile.html', content)
 
 @login_required
@@ -80,10 +80,9 @@ def upload_course(request):
         description = request.POST.get('description')
         video_url = request.POST.get('video_url')
         
-        exists = Courses.objects.filter(title = title, publisher = request.user.profile).exists()
-
-        if exists:
-            return HttpResponse("Course with this title already exists.")
+        if Courses.objects.filter(video_url = video_url, publisher = request.user.profile).exists():
+            messages.error(request, "You have already uploaded a course with this video URL.")
+            return redirect('users:profile', username=request.user.username)
 
         new_course = Courses.objects.create(
             title = title,
@@ -91,5 +90,13 @@ def upload_course(request):
             publisher =  request.user.profile,
             video_url = video_url
         )
+        messages.success(request, "Course uploaded successfully!")
         return redirect('users:profile', username=request.user.username)
     return render(request, 'users/upload_courses.html')
+
+def course_list(request, username):
+    courses = Courses.objects.all().order_by('-created_at')
+    return render(request, 'users/posts.html', {
+        'courses': courses,
+        'username': username
+    })
