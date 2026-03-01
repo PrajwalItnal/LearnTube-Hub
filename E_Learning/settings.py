@@ -124,3 +124,6 @@ MEDIA_ROOT = BASE_DIR / 'assets/media'
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
+
+LOGIN_URL = 'users:login'
+LOGOUT_REDIRECT_URL = 'users:login'

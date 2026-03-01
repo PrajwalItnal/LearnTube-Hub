@@ -18,6 +18,7 @@ def signup(request):
             # Save the role to the user's profile
             role = form.cleaned_data['role']
             user_bio = form.cleaned_data['bio']
+            auth_login(request, user)
             if role == 'student':
                 Profile.objects.create(
                     user = user,
@@ -37,7 +38,7 @@ def signup(request):
         form = CustomSignupForm()
     return render(request, 'users/signup.html', {'form': form})
 
-def login(request):
+def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
@@ -49,8 +50,7 @@ def login(request):
                 return redirect('users:profile', username=user.username)
     else:
         form = AuthenticationForm()
-        return render(request, 'users/login.html', {'form': form})
-    return render(request, 'users/login.html')
+    return render(request, 'users/login.html', {'form': form})
 
 @login_required
 def profile_view(request, username):
