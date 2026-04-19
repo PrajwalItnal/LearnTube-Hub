@@ -5,6 +5,174 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/courses.css' %}">
+    <style>
+        /* Progress bar */
+        .progress-wrapper {
+            padding: 0 1.5rem;
+            margin-top: 0.75rem;
+        }
+        .progress-bar-track {
+            background: #e2e8f0;
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+        }
+        .progress-bar-fill.completed {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        /* Enrollment status badge */
+        .enrollment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+        }
+        .enrollment-badge.enrolled {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .enrollment-badge.completed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        /* Enroll / Unenroll buttons */
+        .btn-enroll {
+            background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+            color: white;
+        }
+        .btn-enroll:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+        .btn-enrolled {
+            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+            color: white;
+            cursor: default;
+        }
+        .btn-unenroll {
+            background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
+            color: white;
+        }
+        .btn-unenroll:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+            color: white;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+        }
+        .btn-cert-link {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+        .btn-cert-link:hover {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        /* My Certificates nav link */
+        .header-right .btn-cert-nav {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #7c2d12;
+        }
+        .header-right .btn-cert-nav:hover {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .course-actions {
+            flex-wrap: wrap;
+        }
+
+        /* Search Bar Styles */
+        .search-outer-container {
+            margin: 0 auto 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        .search-form {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .search-form:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 12px 15px;
+            font-size: 1.05rem;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            color: #2d3748;
+        }
+        .search-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: inherit;
+        }
+        .search-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .clear-search-link {
+            margin-right: 15px;
+            color: #a0aec0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .clear-search-link:hover { color: #e53e3e; }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -17,6 +185,11 @@
                 <p class="header-subtitle">Explore and learn from amazing courses</p>
             </div>
             <div class="header-right">
+                {% if user.profile.is_student %}
+                    <a href="{% url 'users:my_certificates' %}" class="btn btn-cert-nav">
+                        🎓 My Certificates
+                    </a>
+                {% endif %}
                 <a href="{% url 'users:profile' username=user.username %}" class="btn btn-secondary">
                     Profile
                 </a>
@@ -29,9 +202,32 @@
     </header>
 
     <div class="courses-container">
+        <!-- Search Bar -->
+        <div class="search-outer-container">
+            <form method="GET" action="{% url 'users:course_list' username=username %}" class="search-form">
+                <span style="font-size: 1.4rem; margin-left: 10px;">🔍</span>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Find courses by name, topic, or publisher..." 
+                    value="{{ request.GET.q|default:'' }}">
+                
+                {% if request.GET.q %}
+                    <a href="{% url 'users:course_list' username=username %}" class="clear-search-link">✕ Clear</a>
+                {% endif %}
+                
+                <button type="submit" class="search-btn">
+                    Search
+                </button>
+            </form>
+        </div>
+
         <!-- Section Title -->
         <div class="section-header">
-            {% if courses|length %}
+            {% if request.GET.q %}
+                <h2 class="section-title">🔍 Search Results for "{{ request.GET.q }}" ({{ courses|length }})</h2>
+            {% elif courses|length %}
                 <h2 class="section-title">📚 Available Courses ({{ courses|length }})</h2>
             {% else %}
                 <h2 class="section-title">📚 No Courses Available</h2>
@@ -43,6 +239,14 @@
             <div class="courses-grid">
                 {% for course in courses %}
                     <div class="course-item" id="course-{{ course.id }}">
+
+                        <!-- Enrollment badge -->
+                        {% if course.id in completed_course_ids %}
+                            <span class="enrollment-badge completed">✓ Completed</span>
+                        {% elif course.id in enrolled_course_ids %}
+                            <span class="enrollment-badge enrolled">📖 Enrolled</span>
+                        {% endif %}
+
                         <!-- Course Card Header -->
                         <div class="course-publisher">
                             <span class="publisher-name">By {{ course.publisher.user.username }}</span>
@@ -54,16 +258,36 @@
 
                         <!-- Video Container -->
                         <div class="video-container">
-                            <iframe 
-                                src="{{ course.replace_youtube_link }}" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                referrerpolicy="strict-origin-when-cross-origin"
-                                allowfullscreen>
-                            </iframe>
+                                <iframe 
+                                    id="player-{{ course.id }}"
+                                    data-start-time="{{ course.last_timestamp }}"
+                                    src="{{ course.replace_youtube_link }}" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen>
+                                </iframe>
                         </div>
 
                         <!-- Course Description -->
                         <p class="course-description">{{ course.description }}</p>
+
+                        <!-- Progress Bar (for enrolled students) -->
+                        {% if user.profile.is_student and course.is_enrolled %}
+                            <div class="progress-wrapper" id="progress-wrap-{{ course.id }}">
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill {% if course.is_completed %}completed{% endif %}"
+                                         id="progress-fill-{{ course.id }}"
+                                         style="width: {{ course.user_progress }}%;">
+                                    </div>
+                                </div>
+                                <div class="progress-label">
+                                    <span>Progress</span>
+                                    <span id="progress-text-{{ course.id }}">
+                                        {{ course.user_progress }}%
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
 
                         <!-- Action Buttons -->
                         <div class="course-actions">
@@ -75,14 +299,36 @@
                                     data-url="{% url 'users:save_course' course_id=course.id %}"
                                     {% if course in user.profile.saved_courses.all %}disabled{% endif %}>
                                     {% if course in user.profile.saved_courses.all %}
-                                        ✓ Course Saved
+                                        ✓ Saved
                                     {% else %}
-                                        💾 Save Course
+                                        💾 Save
                                     {% endif %}
                                 </button>
+                                
+                                {% if course.id in completed_course_ids %}
+                                    <a href="{% url 'users:generate_certificate' course_id=course.id %}" target="_blank" class="btn btn-success">
+                                        🎓 Certificate
+                                    </a>
+                                {% elif course.id in enrolled_course_ids %}
+                                    <button class="btn btn-enrolled" disabled>✓ Enrolled</button>
+                                    <button
+                                        class="btn btn-unenroll"
+                                        onclick="unenrollCourse(this, {{ course.id }})"
+                                        data-url="{% url 'users:unenroll_course' course_id=course.id %}">
+                                        ✕ Unenroll
+                                    </button>
+                                {% else %}
+                                    <button 
+                                        id="btn-enroll-{{ course.id }}"
+                                        class="btn btn-enroll"
+                                        onclick="enrollCourse(this, {{ course.id }})"
+                                        data-url="{% url 'users:enroll_course' course_id=course.id %}">
+                                        📝 Enroll Now
+                                    </button>
+                                {% endif %}
                             {% endif %}
                             <a href="{{ course.video_url }}" target="_blank" class="btn btn-youtube">
-                                ▶ Watch on YouTube
+                                ▶ YouTube
                             </a>
                         </div>
                     </div>
@@ -101,7 +347,6 @@
 <script>
     function saveCourse(button, courseId) {
         const saveUrl = button.getAttribute('data-url');
-        
         fetch(saveUrl, {
             method: 'POST',
             headers: {
@@ -112,7 +357,7 @@
         .then(response => {
             if (response.ok) {
                 button.disabled = true;
-                button.textContent = '✓ Course Saved';
+                button.textContent = '✓ Saved';
                 button.classList.add('btn-saved');
                 button.classList.remove('btn-save');
             } else {
@@ -123,6 +368,204 @@
             console.error('Error:', error);
             alert('Error saving course.');
         });
+    }
+
+    function enrollCourse(button, courseId) {
+        const url = button.getAttribute('data-url');
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' || data.status === 'info') {
+                location.reload();
+            } else {
+                alert(data.message || 'Error enrolling in course.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error enrolling in course.');
+        });
+    }
+
+    function unenrollCourse(button, courseId) {
+        if (!confirm('Are you sure you want to unenroll from this course? Your progress will be lost.')) {
+            return;
+        }
+        const url = button.getAttribute('data-url');
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert(data.message || 'Error unenrolling from course.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error unenrolling from course.');
+        });
+    }
+
+    // --- Smart Progress Tracking Logic ---
+    const trackingInterval = 10; // Ping every 10 seconds
+    const enrolledCourseIds = {{ enrolled_course_ids|safe|default:"[]" }};
+    const completedCourseIds = {{ completed_course_ids|safe|default:"[]" }};
+    
+    // Track which courses are currently playing
+    const activeCourseIds = new Set();
+    const players = {};
+    const lastTrackedTimes = {};
+
+    // Load YouTube API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // Initializer for YouTube players
+    window.onYouTubeIframeAPIReady = function() {
+        enrolledCourseIds.forEach(courseId => {
+            // No need to track if already completed
+            if (completedCourseIds.includes(courseId)) return;
+
+            const iframeId = `player-${courseId}`;
+            const iframe = document.getElementById(iframeId);
+            
+            if (iframe) {
+                players[courseId] = new YT.Player(iframeId, {
+                    events: {
+                        'onReady': (event) => onPlayerReady(event, iframe.getAttribute('data-start-time')),
+                        'onStateChange': (event) => onPlayerStateChange(event, courseId)
+                    }
+                });
+            }
+        });
+    };
+
+    function onPlayerReady(event, startTime) {
+        const courseId = event.target.getIframe().id.split('-')[1];
+        lastTrackedTimes[courseId] = startTime ? parseInt(startTime) : 0;
+        
+        if (startTime && parseInt(startTime) > 0) {
+            event.target.seekTo(parseInt(startTime), true);
+        }
+    }
+
+    function onPlayerStateChange(event, courseId) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            console.log(`Course ${courseId} is now PLAYING`);
+            activeCourseIds.add(courseId);
+        } else {
+            console.log(`Course ${courseId} is PAUSED/ENDED`);
+            activeCourseIds.delete(courseId);
+            
+            // Save progress immediately on pause
+            saveSpecificProgress(courseId);
+        }
+    }
+
+    function saveSpecificProgress(courseId) {
+        const player = players[courseId];
+        if (!player || !player.getCurrentTime) return;
+
+        const currentTime = Math.floor(player.getCurrentTime());
+        const url = `/course/${courseId}/update-view-time/`; 
+        const formData = new FormData();
+        formData.append('time_added', 0); // No time 'added' on manual save
+        formData.append('current_time', currentTime);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update anchor so the next heartbeat doesn't double count
+                lastTrackedTimes[courseId] = currentTime;
+            }
+        })
+        .catch(err => console.error('Immediate save failed:', err));
+    }
+
+    function updateAllProgress() {
+          activeCourseIds.forEach(courseId => {
+            const player = players[courseId];
+            if (!player || !player.getCurrentTime) return;
+
+            const currentTime = Math.floor(player.getCurrentTime());
+            const lastTime = lastTrackedTimes[courseId] || 0;
+            
+            // Calculate how many actual seconds were watched
+            // We ignore jumps (seeking forward/backward) by capping the delta
+            let timeAdded = currentTime - lastTime;
+            
+            // If the difference is negative or too large (e.g. skip), we treat as 0 added time
+            // but we still update the tracker anchor points.
+            if (timeAdded < 0 || timeAdded > (trackingInterval + 5)) {
+                timeAdded = 0;
+            }
+
+            const url = `/course/${courseId}/update-view-time/`; 
+            const formData = new FormData();
+            formData.append('time_added', timeAdded);
+            formData.append('current_time', currentTime);
+            
+            // Get duration if player is ready
+            const duration = Math.floor(player.getDuration());
+            if (duration > 0) {
+                formData.append('duration', duration);
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update our local anchor point
+                    lastTrackedTimes[courseId] = currentTime;
+                    
+                    const fill = document.getElementById(`progress-fill-${courseId}`);
+                    if (fill) fill.style.width = `${data.progress_percent}%`;
+                    
+                    const label = document.querySelector(`#progress-wrap-${courseId} .progress-label span:last-child`);
+                    if (label) label.innerText = `${data.progress_percent}%`;
+
+                    if (data.is_completed) {
+                        location.reload();
+                    }
+                }
+            })
+            .catch(err => console.error('Progress update failed:', err));
+        });
+    }
+
+    // Run heartbeat every 10 seconds
+    if (enrolledCourseIds.length > 0) {
+        setInterval(updateAllProgress, trackingInterval * 1000);
     }
 </script>
 {% endblock %}

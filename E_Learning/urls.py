@@ -22,5 +22,8 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('users.urls')),
-
 ]
+
+handler404 = 'E_Learning.views.handler404'
+handler500 = 'E_Learning.views.handler500'
+handler403 = 'E_Learning.views.handler403'

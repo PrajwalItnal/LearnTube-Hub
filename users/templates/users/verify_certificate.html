@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate - LearnTube Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verify-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 40px 20px;
+        background: linear-gradient(180deg, #f0f4ff 0%, #f9f5ff 100%);
+    }
+
+    .verify-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 560px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .verify-icon {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2.2rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+    }
+
+    .verify-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #1a202c;
+        margin-bottom: 6px;
+    }
+
+    .verify-subtitle {
+        font-size: 1rem;
+        color: #718096;
+        margin-bottom: 30px;
+    }
+
+    .verify-details {
+        text-align: left;
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+
+    .verify-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.92rem;
+    }
+    .verify-row:last-child {
+        border-bottom: none;
+    }
+    .verify-label {
+        color: #a0aec0;
+        font-weight: 500;
+    }
+    .verify-value {
+        color: #2d3748;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .verify-cert-id {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        word-break: break-all;
+        margin-top: 10px;
+    }
+
+    .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #dcfce7;
+        color: #15803d;
+        padding: 8px 20px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-page">
+    <div class="verify-card">
+        <div class="verify-icon">✓</div>
+        <h1 class="verify-title">Certificate Verified</h1>
+        <p class="verify-subtitle">This certificate is authentic and was issued by LearnTube Hub.</p>
+
+        <div class="verified-badge">✓ Verified &amp; Authentic</div>
+
+        <div class="verify-details">
+            <div class="verify-row">
+                <span class="verify-label">Student</span>
+                <span class="verify-value">{{ student.user.get_full_name|default:student.user.username }}</span>
+            </div>
+            <div class="verify-row">
+                <span class="verify-label">Course</span>
+                <span class="verify-value">{{ course.title }}</span>
+            </div>
+            <div class="verify-row">
+                <span class="verify-label">Instructor</span>
+                <span class="verify-value">{{ course.publisher.user.username }}</span>
+            </div>
+            <div class="verify-row">
+                <span class="verify-label">Enrolled</span>
+                <span class="verify-value">{{ enrollment.enrolled_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="verify-row">
+                <span class="verify-label">Completed</span>
+                <span class="verify-value">{{ enrollment.completed_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="verify-row">
+                <span class="verify-label">Issued</span>
+                <span class="verify-value">{{ certificate.issued_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <p class="verify-cert-id">Certificate ID: {{ certificate.certificate_id }}</p>
+    </div>
+</div>
+{% endblock %}

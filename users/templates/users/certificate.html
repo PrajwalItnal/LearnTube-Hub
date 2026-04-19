@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate of Completion - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .certificate-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+        min-height: 80vh;
+        background: linear-gradient(180deg, #f0f4ff 0%, #f9f5ff 100%);
+    }
+
+    .certificate-card {
+        background: #fffdf5;
+        border: 3px solid #c9a84c;
+        padding: 50px 60px;
+        text-align: center;
+        width: 100%;
+        max-width: 850px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        position: relative;
+    }
+
+    /* Gold corner ornaments */
+    .certificate-card::before,
+    .certificate-card::after {
+        content: '';
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border: 3px solid #c9a84c;
+    }
+    .certificate-card::before {
+        top: 12px; left: 12px;
+        border-right: none; border-bottom: none;
+    }
+    .certificate-card::after {
+        bottom: 12px; right: 12px;
+        border-left: none; border-top: none;
+    }
+
+    .cert-header {
+        font-size: 2.8rem;
+        color: #2c3e50;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        font-family: 'Georgia', serif;
+    }
+
+    .cert-subheader {
+        font-size: 1.15rem;
+        color: #7f8c8d;
+        margin-bottom: 35px;
+        font-style: italic;
+    }
+
+    .cert-recipient {
+        font-size: 2.6rem;
+        color: #1a1a1a;
+        margin-bottom: 18px;
+        font-weight: bold;
+        border-bottom: 2px solid #c9a84c;
+        padding-bottom: 8px;
+        display: inline-block;
+        font-family: 'Georgia', serif;
+    }
+
+    .cert-course-info {
+        font-size: 1.15rem;
+        color: #34495e;
+        margin-bottom: 30px;
+        line-height: 1.7;
+    }
+
+    .cert-course-name {
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: #764ba2;
+        display: block;
+        margin: 10px 0;
+    }
+
+    .cert-details {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin: 20px 0 30px;
+        flex-wrap: wrap;
+    }
+    .cert-detail-item {
+        text-align: center;
+    }
+    .cert-detail-label {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .cert-detail-value {
+        font-size: 0.95rem;
+        color: #2d3748;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .cert-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        border-top: 1px solid #e2e0d8;
+        padding-top: 20px;
+    }
+
+    .cert-signature, .cert-date {
+        text-align: center;
+        width: 40%;
+    }
+
+    .cert-signature span, .cert-date span {
+        display: block;
+        border-bottom: 1px solid #333;
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        min-height: 28px;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .cert-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Certificate ID */
+    .cert-id {
+        margin-top: 20px;
+        font-size: 0.8rem;
+        color: #a0aec0;
+        letter-spacing: 0.5px;
+    }
+
+    /* Action buttons below the certificate */
+    .cert-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .cert-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+    .cert-btn.print {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    .cert-btn.print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    .cert-btn.share {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+    }
+    .cert-btn.share:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+    }
+    .cert-btn.back {
+        background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+        color: #667eea;
+    }
+    .cert-btn.back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+    }
+
+    .verify-link {
+        margin-top: 14px;
+        font-size: 0.82rem;
+        color: #718096;
+    }
+    .verify-link a {
+        color: #667eea;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    /* Copied toast */
+    .copy-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #2d3748;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: all 0.4s ease;
+        z-index: 9999;
+    }
+    .copy-toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    @media print {
+        body { margin: 0; padding: 0; background: none; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .header-wrapper, .footer-wrapper, .cert-actions, .verify-link, .copy-toast, .back-link, nav { display: none !important; }
+        .certificate-page { padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: none; }
+        .certificate-card { box-shadow: none; border: 4px solid #c9a84c !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="certificate-page">
+    <div class="certificate-card">
+        <h1 class="cert-header">Certificate of Completion</h1>
+        <p class="cert-subheader">This is to proudly certify that</p>
+
+        <div class="cert-recipient">{{ student.user.get_full_name|default:student.user.username }}</div>
+
+        <p class="cert-course-info">
+            has successfully completed all the requirements for the course
+            <span class="cert-course-name">{{ course.title }}</span>
+            offered by <strong>{{ course.publisher.user.username }}</strong> on LearnTube Hub.
+        </p>
+
+        <div class="cert-details">
+            <div class="cert-detail-item">
+                <div class="cert-detail-label">Watch Time</div>
+                <div class="cert-detail-value">{{ enrollment.view_time }}s</div>
+            </div>
+            <div class="cert-detail-item">
+                <div class="cert-detail-label">Enrolled On</div>
+                <div class="cert-detail-value">{{ enrollment.enrolled_at|date:"M d, Y" }}</div>
+            </div>
+            <div class="cert-detail-item">
+                <div class="cert-detail-label">Completed On</div>
+                <div class="cert-detail-value">{{ enrollment.completed_at|date:"M d, Y" }}</div>
+            </div>
+        </div>
+
+        <div class="cert-footer">
+            <div class="cert-signature">
+                <span>LearnTube Hub</span>
+                <div class="cert-label">Authorized Signature</div>
+            </div>
+            <div class="cert-date">
+                <span>{{ certificate.issued_at|date:"F d, Y" }}</span>
+                <div class="cert-label">Date of Issue</div>
+            </div>
+        </div>
+
+        <div class="cert-id">
+            Certificate ID: {{ certificate.certificate_id }}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="cert-actions">
+        <button class="cert-btn print" onclick="window.print()">📥 Download / Print PDF</button>
+        <button class="cert-btn share" onclick="copyVerifyLink()">📋 Copy Verification Link</button>
+        <a href="{% url 'users:profile' username=student.user.username %}" class="cert-btn back">← Back to Profile</a>
+    </div>
+
+    <p class="verify-link">
+        Verification URL:
+        <a href="{% url 'users:verify_certificate' cert_uuid=certificate.certificate_id %}" id="verify-url">
+            {{ request.build_absolute_uri }}{% url 'users:verify_certificate' cert_uuid=certificate.certificate_id %}
+        </a>
+    </p>
+
+    <div class="copy-toast" id="copy-toast">✓ Link copied to clipboard!</div>
+</div>
+
+<script>
+    function copyVerifyLink() {
+        const url = document.getElementById('verify-url').href;
+        navigator.clipboard.writeText(url).then(() => {
+            const toast = document.getElementById('copy-toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2200);
+        });
+    }
+</script>
+{% endblock %}

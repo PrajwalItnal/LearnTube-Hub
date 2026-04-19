@@ -96,9 +96,10 @@
                     </div>
                 {% endif %}
                 <small class="help-text">Paste the full YouTube video URL</small>
+                <div id="url-status" style="margin-top: 8px; font-size: 0.85rem; font-weight: 700; display: none;"></div>
             </div>
 
-            <button type="submit" class="btn btn-submit">
+            <button type="submit" class="btn btn-submit" id="submit-btn" disabled>
                 <span class="btn-icon">📤</span>
                 <span class="btn-text">Upload Course</span>
             </button>
@@ -115,4 +116,46 @@
         </form>
     </div>
 </div>
+
+<script>
+    const urlInput = document.getElementById('id_video_url');
+    const statusDiv = document.getElementById('url-status');
+    const submitBtn = document.getElementById('submit-btn');
+    let timeout = null;
+
+    urlInput.addEventListener('input', () => {
+        clearTimeout(timeout);
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            statusDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#718096';
+        statusDiv.innerHTML = '🔍 Checking video...';
+
+        timeout = setTimeout(() => {
+            fetch(`/validate-youtube-url/?url=${encodeURIComponent(url)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        statusDiv.style.color = '#22c55e';
+                        statusDiv.innerHTML = '✅ Video Found & Valid';
+                        submitBtn.disabled = false;
+                    } else {
+                        statusDiv.style.color = '#ef4444';
+                        statusDiv.innerHTML = '❌ Video Not Found or Private';
+                        submitBtn.disabled = true;
+                    }
+                })
+                .catch(err => {
+                    console.error('Validation error:', err);
+                    statusDiv.innerHTML = '⚠️ Validation failed (Checking again later)';
+                });
+        }, 800); // 800ms debounce
+    });
+</script>
 {% endblock %}

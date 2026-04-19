@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Certificates - LearnTube Hub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/courses.css' %}">
+<style>
+    .certs-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f0f4ff 0%, #f9f5ff 100%);
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+    }
+
+    .certs-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+    }
+
+    .certs-header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .certs-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    .certs-header p {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .certs-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+    }
+
+    .certs-grid {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    }
+
+    .cert-card {
+        background: #fffdf5;
+        border: 2px solid #e2d9b8;
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .cert-card::before {
+        content: '🎓';
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        font-size: 5rem;
+        opacity: 0.06;
+    }
+    .cert-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+        border-color: #c9a84c;
+    }
+
+    .cert-card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1a202c;
+        margin-bottom: 6px;
+    }
+
+    .cert-card-publisher {
+        font-size: 0.85rem;
+        color: #718096;
+        margin-bottom: 14px;
+    }
+
+    .cert-card-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #4a5568;
+        margin-bottom: 16px;
+    }
+    .cert-card-meta .meta-row {
+        display: flex;
+        justify-content: space-between;
+    }
+    .meta-label {
+        color: #a0aec0;
+    }
+
+    .cert-card-id {
+        font-size: 0.72rem;
+        color: #a0aec0;
+        word-break: break-all;
+        margin-bottom: 16px;
+    }
+
+    .cert-card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .cert-card-actions .cb {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: none;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+    .cb.view {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    .cb.view:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(102,126,234,0.3); }
+    .cb.verify {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+    }
+    .cb.verify:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(34,197,94,0.3); }
+
+    .certs-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 2px dashed #e2e8f0;
+    }
+    .certs-empty .icon { font-size: 4rem; margin-bottom: 1rem; }
+    .certs-empty h3 { font-size: 1.5rem; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem; }
+    .certs-empty p { color: #718096; }
+
+    /* Nav buttons */
+    .nav-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+        font-family: inherit;
+        background: rgba(255,255,255,0.25);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+    }
+    .nav-btn:hover {
+        background: rgba(255,255,255,0.35);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .certs-grid { grid-template-columns: 1fr; }
+        .certs-header-content { flex-direction: column; align-items: stretch; text-align: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="certs-page">
+    <header class="certs-header">
+        <div class="certs-header-content">
+            <div>
+                <h1>🎓 My Certificates</h1>
+                <p>{{ certificates|length }} certificate{{ certificates|length|pluralize }} earned</p>
+            </div>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="{% url 'users:course_list' username=user.username %}" class="nav-btn">← Courses</a>
+                <a href="{% url 'users:profile' username=user.username %}" class="nav-btn">👤 Profile</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="certs-container">
+        {% if certificates %}
+            <div class="certs-grid">
+                {% for cert in certificates %}
+                    <div class="cert-card">
+                        <h3 class="cert-card-title">{{ cert.enrollment.course.title }}</h3>
+                        <p class="cert-card-publisher">By {{ cert.enrollment.course.publisher.user.username }}</p>
+
+                        <div class="cert-card-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Issued</span>
+                                <span>{{ cert.issued_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Completed</span>
+                                <span>{{ cert.enrollment.completed_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Watch Time</span>
+                                <span>{{ cert.enrollment.view_time }}s</span>
+                            </div>
+                        </div>
+
+                        <p class="cert-card-id">ID: {{ cert.certificate_id }}</p>
+
+                        <div class="cert-card-actions">
+                            <a href="{% url 'users:generate_certificate' course_id=cert.enrollment.course.id %}" class="cb view" target="_blank">
+                                📄 View
+                            </a>
+                            <a href="{% url 'users:verify_certificate' cert_uuid=cert.certificate_id %}" class="cb verify" target="_blank">
+                                ✓ Verify
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="certs-empty">
+                <div class="icon">📭</div>
+                <h3>No Certificates Yet</h3>
+                <p>Complete a course to earn your first certificate!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

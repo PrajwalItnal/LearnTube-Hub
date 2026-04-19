@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enrolled Students - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+    .stat-label {
+        color: #718096;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+    }
+    .value-total { color: #667eea; }
+    .value-completed { color: #10b981; }
+    .value-progress { color: #f59e0b; }
+
+    .students-table-wrapper {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .table-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .table-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .table-container {
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    th {
+        background: #f8fafc;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+    td {
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+    tr:last-child td { border-bottom: none; }
+    
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .progress-pill {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+    .pill-completed { background: #dcfce7; color: #15803d; }
+    .pill-progress { background: #dbeafe; color: #1e40af; }
+
+    .progress-bar-small {
+        width: 100px;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    .progress-bar-fill-small {
+        height: 100%;
+        background: #667eea;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2rem;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    .back-btn:hover {
+        transform: translateX(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
+    <a href="{% url 'users:profile' username=user.username %}" class="back-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to My Profile
+    </a>
+
+    <h1 style="margin-bottom: 0.5rem; font-weight: 800; color: #1e293b;">Enrolled Students</h1>
+    <p style="margin-bottom: 2rem; color: #64748b;">Managing students for: <strong>{{ course.title }}</strong></p>
+
+    <!-- Stats -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <span class="stat-label">Total Students</span>
+            <span class="stat-value value-total">{{ total }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Completed</span>
+            <span class="stat-value value-completed">{{ completed }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">In Progress</span>
+            <span class="stat-value value-progress">{{ in_progress }}</span>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="students-table-wrapper">
+        <div class="table-header">
+            <h2 class="table-title">Student Roster</h2>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Enrolled Date</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td>
+                            <div class="student-info">
+                                <div class="avatar-placeholder">
+                                    {{ enrollment.student.user.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #1e293b;">{{ enrollment.student.user.username }}</div>
+                                    <div style="font-size: 0.8rem; color: #64748b;">{{ enrollment.student.user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div style="font-weight: 600; color: #475569;">{{ enrollment.progress_percent }}%</div>
+                            <div class="progress-bar-small">
+                                <div class="progress-bar-fill-small" style="width: {{ enrollment.progress_percent }}%;"></div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if enrollment.is_completed %}
+                                <span class="progress-pill pill-completed">Completed</span>
+                            {% else %}
+                                <span class="progress-pill pill-progress">In Progress</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 4rem 2rem; color: #94a3b8;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+                            <p style="font-size: 1.1rem; font-weight: 600;">No students enrolled yet.</p>
+                            <p>Once students enroll, they will appear here.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

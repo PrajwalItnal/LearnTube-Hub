@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}403 - Access Denied{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        text-align: center;
+        padding: 20px;
+    }
+    .error-code {
+        font-size: 8rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fbbf24, #d97706);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0;
+        line-height: 1;
+    }
+    .error-title {
+        font-size: 2.2rem;
+        color: #2d3748;
+        margin-bottom: 15px;
+    }
+    .error-message {
+        font-size: 1.1rem;
+        color: #718096;
+        max-width: 500px;
+        margin-bottom: 30px;
+    }
+    .error-illustration {
+        font-size: 5rem;
+        margin-bottom: 20px;
+    }
+    .back-home-btn {
+        background: #d97706;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .back-home-btn:hover {
+        transform: translateY(-2px);
+        background: #b45309;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-page-container">
+    <div class="error-illustration">🔒</div>
+    <h1 class="error-code">403</h1>
+    <h2 class="error-title">Area Restricted</h2>
+    <p class="error-message">
+        You don't have the necessary credentials or permissions to view this section of the platform. Please contact support if you believe this is an error.
+    </p>
+    <a href="/" class="back-home-btn">Return to Safety</a>
+</div>
+{% endblock %}
