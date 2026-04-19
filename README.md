@@ -31,9 +31,10 @@
 
 **LearnTube Hub** is designed for learners and content creators who want a **simple and distraction-free platform** for sharing educational content hosted on YouTube.
 
-✔ No certificates  
+✔ Built-in Course Certifications  
+✔ Progress tracking and resume functionality  
 ✔ No paid courses  
-✔ Focused purely on learning & sharing  
+✔ Focused on accessible learning & sharing  
 
 ---
 
@@ -41,9 +42,11 @@
 
 - User authentication (Signup / Login / Logout)
 - Role-based access (Student & Publisher)
-- Publish YouTube-based courses
+- Publish YouTube-based courses with unique URL validation
 - Automatic YouTube link embedding
-- Watch videos inside the platform
+- Course enrollment and precise progress tracking
+- "Resume where you left off" video functionality
+- Automated certificate generation upon completion
 - Save courses using AJAX
 - Responsive embedded video player
 
@@ -53,7 +56,7 @@
 
 | Role | Capabilities |
 |-----|-------------|
-| Student | Browse, save & watch courses |
+| Student | Browse, enroll, track progress, earn certificates & save courses |
 | Publisher | Upload & manage courses |
 | Admin | Full control via Django Admin |
 
@@ -165,8 +168,10 @@ If the page doesn't load, ensure that:
 ### 👨‍🎓 Student
 * **Register / Login:** Create your learning profile.
 * **Browse:** Explore all available courses.
+* **Enroll & Track:** Enroll in courses and track your watch progress.
+* **Earn Certificates:** Complete courses to automatically generate your personalized certificate.
 * **Save:** Keep your favorite courses in your library.
-* **Watch:** Learn inside the platform or click through to YouTube.
+* **Watch:** Learn inside the platform with seamless "resume where you left off" tracking.
 
 ---
 
@@ -187,7 +192,6 @@ The system automatically converts links to the embed-friendly format:
 ---
 
 ## ⚠️ Limitations
-* No certification system currently available.
 * No payment gateway integration.
 * Restricted by YouTube's specific video embedding settings.
 
