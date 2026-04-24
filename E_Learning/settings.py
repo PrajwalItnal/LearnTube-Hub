@@ -139,3 +139,5 @@ STATICFILES_FINDERS = [
 LOGIN_URL = 'users:login'
 LOGOUT_REDIRECT_URL = 'users:login'
 SITE_URL = 'http://127.0.0.1:8000'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

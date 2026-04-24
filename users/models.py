@@ -27,6 +27,16 @@ class Courses(models.Model):
     @property
     def replace_youtube_link(self):
         return get_youtube_embed_url(self.video_url)
+
+    @property
+    def video_id(self):
+        """Extract the YouTube video ID for thumbnail generation."""
+        import re
+        if not self.video_url:
+            return ""
+        regex = r"(?:v=|youtu\.be\/|embed\/|watch\?v=|&v=)([a-zA-Z0-9_-]{11})"
+        match = re.search(regex, self.video_url)
+        return match.group(1) if match else ""
     
     def __str__(self):
         return self.title

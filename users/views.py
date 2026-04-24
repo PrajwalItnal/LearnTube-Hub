@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q
+from django.views.decorators.http import require_POST
 import json
 from functools import wraps
 
@@ -115,9 +116,9 @@ def profile_view(request, username):
 
 
 @login_required
+@require_POST
 def logout_view(request):
-    if request.method == 'POST':
-        auth_logout(request)
+    auth_logout(request)
     return redirect('users:login')
 
 
@@ -130,6 +131,7 @@ def validate_youtube_url(request):
     
     exists = check_youtube_video(url)
     return JsonResponse({'exists': exists})
+
 
 @login_required
 @publisher_required
@@ -216,9 +218,6 @@ def course_list(request, username):
 @login_required
 @student_required
 def save_course(request, course_id):
-    if not request.user.profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Not a student'}, status=403)
-
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
@@ -233,12 +232,10 @@ def save_course(request, course_id):
 
 
 @login_required
+@student_required
 def unsave_course(request, course_id):
     profile = request.user.profile
     course = get_object_or_404(Courses, id=course_id)
-    if not profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Only students can unsave courses'}, status=403)
-
     profile.saved_courses.remove(course)
     if course not in profile.saved_courses.all():
         return JsonResponse({'status': 'success'})
@@ -248,9 +245,6 @@ def unsave_course(request, course_id):
 @login_required
 @publisher_required
 def delete_course(request, course_id):
-    if not request.user.profile.is_publisher:
-        return JsonResponse({'status': 'error', 'message': 'Not a publisher'}, status=403)
-
     course = get_object_or_404(Courses, id=course_id)
 
     if course.publisher != request.user.profile:
@@ -265,9 +259,6 @@ def delete_course(request, course_id):
 @login_required
 @student_required
 def enroll_course(request, course_id):
-    if not request.user.profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Only students can enroll'}, status=403)
-
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
@@ -286,13 +277,9 @@ def enroll_course(request, course_id):
 
 
 @login_required
+@student_required
+@require_POST
 def unenroll_course(request, course_id):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
-
-    if not request.user.profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Not a student'}, status=403)
-
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
@@ -310,12 +297,10 @@ def unenroll_course(request, course_id):
 
 @login_required
 @student_required
+@require_POST
 def update_view_time(request, course_id):
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
-
-    if not request.user.profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Only students can track progress'}, status=403)
 
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
@@ -348,9 +333,6 @@ def update_view_time(request, course_id):
 @login_required
 @student_required
 def generate_certificate(request, course_id):
-    if not request.user.profile.is_student:
-        return JsonResponse({'status': 'error', 'message': 'Only students can view certificates'}, status=403)
-
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
@@ -367,11 +349,8 @@ def generate_certificate(request, course_id):
 
 
 @login_required
+@student_required
 def my_certificates(request):
-    if not request.user.profile.is_student:
-        messages.error(request, 'Only students can view certificates.')
-        return redirect('users:profile', username=request.user.username)
-
     profile = request.user.profile
     certificates = (
         Certificate.objects
@@ -398,12 +377,9 @@ def verify_certificate(request, cert_uuid):
 
 
 @login_required
+@publisher_required
 def course_enrolled_students(request, course_id):
     """Publisher view — see all students enrolled in one of their courses."""
-    if not request.user.profile.is_publisher:
-        messages.error(request, 'Only publishers can view enrolled students.')
-        return redirect('users:profile', username=request.user.username)
-
     course = get_object_or_404(Courses, id=course_id, publisher=request.user.profile)
     enrollments = (
         Enrollment.objects

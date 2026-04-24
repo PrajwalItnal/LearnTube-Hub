@@ -48,14 +48,26 @@ def update_course_progress(profile, course, time_added, current_time=None, durat
     try:
         enrollment = Enrollment.objects.get(student=profile, course=course)
         
-        if duration and course.duration == 0:
-            course.duration = int(duration)
-            course.save()
-
-        enrollment.view_time += int(time_added)
+        # Validate time_added is a non-negative integer
+        try:
+            time_added = int(time_added) if time_added is not None else 0
+        except (ValueError, TypeError):
+            time_added = 0
         
-        if current_time:
-            enrollment.last_timestamp = int(float(current_time))
+        if duration and course.duration == 0:
+            try:
+                course.duration = int(duration)
+                course.save()
+            except (ValueError, TypeError):
+                pass
+
+        enrollment.view_time += max(0, time_added)
+        
+        if current_time is not None:
+            try:
+                enrollment.last_timestamp = int(float(current_time))
+            except (ValueError, TypeError):
+                pass
 
         threshold = course.duration if course.duration > 0 else 60
         time_based_progress = (enrollment.view_time / threshold) * 100

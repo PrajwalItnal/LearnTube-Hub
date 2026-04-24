@@ -23,7 +23,7 @@
         padding: 1rem 1.25rem; 
         border: 1px solid var(--border-subtle); 
         border-radius: 0.75rem; 
-        background: var(--bg-main); 
+        background: var(--bg-body); 
         color: var(--text-main); 
         font-family: inherit; 
         font-size: 1rem;
@@ -32,6 +32,7 @@
     .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 65, 158, 0.1); }
     .status-msg { margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; min-height: 1.25rem; }
     .help-msg { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+    .errorlist { color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem; list-style: none; padding: 0; }
 </style>
 {% endblock %}
 
@@ -43,42 +44,57 @@
     </div>
 
     <div class="upload-card glass">
-        <form method="post" enctype="multipart/form-data">
+        <form method="post">
             {% csrf_token %}
 
             <div class="form-group">
-                <label class="form-label" for="id_title">Course Title</label>
-                <input type="text" name="title" id="id_title" class="form-input" placeholder="e.g. Master React.js in 2 Hours" required>
+                <label class="form-label" for="{{ form.title.id_for_label }}">Course Title</label>
+                <input type="text" name="title" id="{{ form.title.id_for_label }}" class="form-input" placeholder="e.g. Master React.js in 2 Hours" value="{{ form.title.value|default:'' }}" required>
+                {% if form.title.errors %}
+                    <ul class="errorlist">{% for error in form.title.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
                 <p class="help-msg">Give your course a catchy name that describes the content.</p>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="id_description">Course Description</label>
-                <textarea name="description" id="id_description" class="form-input" style="min-height: 120px;" placeholder="What will students learn in this course?" required></textarea>
+                <label class="form-label" for="{{ form.description.id_for_label }}">Course Description</label>
+                <textarea name="description" id="{{ form.description.id_for_label }}" class="form-input" style="min-height: 120px;" placeholder="What will students learn in this course?" required>{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <ul class="errorlist">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
                 <p class="help-msg">A detailed description helps students find your course more easily.</p>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="id_video_url">YouTube Video URL</label>
-                <input type="url" name="video_url" id="id_video_url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." required>
+                <label class="form-label" for="{{ form.video_url.id_for_label }}">YouTube Video URL</label>
+                <input type="url" name="video_url" id="{{ form.video_url.id_for_label }}" class="form-input" placeholder="https://www.youtube.com/watch?v=..." value="{{ form.video_url.value|default:'' }}" required>
+                {% if form.video_url.errors %}
+                    <ul class="errorlist">{% for error in form.video_url.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
                 <div id="url-status" class="status-msg"></div>
                 <p class="help-msg">Paste the link to your YouTube video. We'll verify it automatically.</p>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%; padding: 1rem;" disabled>
+            <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%; padding: 1rem;">
                 Publish Course
             </button>
         </form>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const urlInput = document.getElementById('id_video_url');
+    const urlInput = document.getElementById('{{ form.video_url.id_for_label }}');
     const statusDiv = document.getElementById('url-status');
     const submitBtn = document.getElementById('submit-btn');
     let timeout = null;
+
+    // Check if the form already has a valid value on load (e.g. after validation error)
+    if (urlInput && urlInput.value.trim()) {
+        statusDiv.style.color = 'var(--text-muted)';
+        statusDiv.innerHTML = '🔍 Checking availability...';
+        checkUrl(urlInput.value.trim());
+    }
 
     urlInput.addEventListener('input', () => {
         clearTimeout(timeout);
@@ -86,31 +102,34 @@
 
         if (!url) {
             statusDiv.innerHTML = '';
-            submitBtn.disabled = true;
+            submitBtn.disabled = false;
             return;
         }
 
         statusDiv.style.color = 'var(--text-muted)';
         statusDiv.innerHTML = '🔍 Checking availability...';
-
-        timeout = setTimeout(() => {
-            fetch(`/validate-youtube-url/?url=${encodeURIComponent(url)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        statusDiv.style.color = '#10b981';
-                        statusDiv.innerHTML = '✅ Valid YouTube Video Found';
-                        submitBtn.disabled = false;
-                    } else {
-                        statusDiv.style.color = '#ef4444';
-                        statusDiv.innerHTML = '❌ Video Invalid, Private or Embedded disabled';
-                        submitBtn.disabled = true;
-                    }
-                })
-                .catch(err => {
-                    statusDiv.innerHTML = '⚠️ Error validating URL';
-                });
-        }, 500); 
+        timeout = setTimeout(() => checkUrl(url), 500);
     });
+
+    function checkUrl(url) {
+        fetch(`/validate-youtube-url/?url=${encodeURIComponent(url)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    statusDiv.style.color = '#10b981';
+                    statusDiv.innerHTML = '✅ Valid YouTube Video Found';
+                    submitBtn.disabled = false;
+                } else {
+                    statusDiv.style.color = '#ef4444';
+                    statusDiv.innerHTML = '❌ Video Invalid, Private or Embedded disabled';
+                    submitBtn.disabled = true;
+                }
+            })
+            .catch(err => {
+                statusDiv.style.color = '#f59e0b';
+                statusDiv.innerHTML = '⚠️ Error validating URL — you may still submit';
+                submitBtn.disabled = false;
+            });
+    }
 </script>
 {% endblock %}
