@@ -1,208 +1,108 @@
 # 📺 LearnTube Hub  
-### A YouTube-Powered E-Learning Platform built with Django
+### A Modern, YouTube-Powered E-Learning Platform built with Django
 
 ![Django](https://img.shields.io/badge/Django-6.0-darkgreen)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Architecture](https://img.shields.io/badge/Architecture-Service--Layer-orange)
+![UI](https://img.shields.io/badge/UI-Coursera--Style-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
-> **LearnTube Hub** is a lightweight Learning Management System (LMS) that allows users to publish, explore, and save **YouTube-based educational courses** with automatic video embedding.
+> **LearnTube Hub** is a premium Learning Management System (LMS) designed to mirror the professional feel of platforms like Coursera. It allows users to build, explore, and track progress through **YouTube-powered courses** organized into modules and lessons.
 
 ---
 
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
-- [Features](#-features)
-- [User Roles](#-user-roles)
-- [Project Structure](#-project-structure)
+- [System Architecture](#-system-architecture)
+- [Key Features](#-key-features)
+- [Evolution (Model Upgrade)](#-evolution-model-upgrade)
 - [Technology Stack](#-technology-stack)
 - [Installation](#-installation)
-- [Usage](#-usage)
-- [YouTube Embedding Logic](#-youtube-embedding-logic)
-- [Limitations](#-limitations)
-- [Future Enhancements](#-future-enhancements)
+- [Docker Deployment](#-docker-deployment)
 - [License](#-license)
-- [Author](#-author)
 
 ---
 
 ## 🚀 Overview
 
-**LearnTube Hub** is designed for learners and content creators who want a **simple and distraction-free platform** for sharing educational content hosted on YouTube.
+LearnTube Hub has been upgraded from a simple video-sharing tool into a **robust educational platform**. It features a service-oriented backend architecture and a glassmorphic, responsive sidebar-based UI.
 
-✔ Built-in Course Certifications  
-✔ Progress tracking and resume functionality  
-✔ No paid courses  
-✔ Focused on accessible learning & sharing  
-
----
-
-## ✨ Features
-
-- User authentication (Signup / Login / Logout)
-- Role-based access (Student & Publisher)
-- Publish YouTube-based courses with unique URL validation
-- Automatic YouTube link embedding
-- Course enrollment and precise progress tracking
-- "Resume where you left off" video functionality
-- Automated certificate generation upon completion
-- Save courses using AJAX
-- Responsive embedded video player
+✔ **Sleek Coursera-Style UI**: Modern dashboard, persistent sidebar, and glassmorphic accents.  
+✔ **Advanced Progress Tracking**: Real-time YouTube watch-time syncing and "resume where you left off" logic.  
+✔ **Multi-Module Courses**: Support for Lessons, Modules, and structured curriculum.  
+✔ **Verified Certificates**: Automated generation with unique IDs and QR code verification.  
 
 ---
 
-## 👥 User Roles
+## 🏗 System Architecture
 
-| Role | Capabilities |
-|-----|-------------|
-| Student | Browse, enroll, track progress, earn certificates & save courses |
-| Publisher | Upload & manage courses |
-| Admin | Full control via Django Admin |
+The project now follows a strict **Clean Architecture** pattern by separating business logic from views:
+
+- **Views layer**: Handles HTTP requests and template rendering.
+- **Service layer (`services.py`)**: Contains core logic for enrollments, progress tracking, and validation.
+- **Models layer**: Structured to handle complex course hierarchies.
 
 ---
 
-## 🗂 Project Structure
+## 🧬 Evolution (Model Upgrade)
 
-```text
-LearnTube-Hub/
-│
-├── E_Learning/                # Project settings
-│
-├── users/                     # Main application
-│   ├── migrations/
-│   ├── templates/
-│   │   └── users/
-│   ├── models.py
-│   ├── views.py
-│   ├── forms.py
-│   └── urls.py
-│
-├── static/
-│   └── css/
-│       ├── styles.css
-│       ├── login.css
-│       ├── signup.css
-│       ├── profile.css
-│       └── upload.css
-│
-├── templates/
-│   └── base.html
-│
-├── manage.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
+We transitioned from a single-video model to a hierarchical structure:
+1. **Course**: The main container.
+2. **Module**: Logical chapters within a course.
+3. **Lesson**: individual videos/content items within modules.
+
+*Legacy courses were automatically migrated into an "Introduction" module during the upgrade.*
+
 ---
 
 ## 🧰 Technology Stack
 
-| Technology | Purpose |
+| Category | Technology |
 |:---|:---|
-| **Python** | Backend logic |
-| **Django 6.0** | Web framework |
-| **SQLite** | Database |
-| **HTML5** | Templates |
-| **CSS3** | Styling |
-| **JavaScript** | AJAX interactions |
-| **Git & GitHub** | Version control |
+| **Backend** | Python, Django 6.0 |
+| **Logic Layer** | Custom Service-Layer Architecture |
+| **Database** | SQLite (compatible with PostgreSQL via dj-database-url) |
+| **Frontend** | Vanilla CSS (Modern Design Tokens, Glassmorphism), JavaScript (YouTube Iframe API) |
+| **DevOps** | Docker, Docker Compose, python-dotenv |
 
 ---
 
 ## ⚙️ Installation
 
-### 1️⃣ Clone the Repository
+### 1️⃣ Clone & Setup
 ```bash
 git clone https://github.com/PrajwalItnal/LearnTube-Hub.git
 cd LearnTube-Hub
-```
-### 2️⃣ Create a Virtual Environment
-```bash
 python -m venv venv
+# Activate venv (Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate)
 ```
-### 3️⃣ Activate the Virtual Environment
-**Windows:**
-```bash
-venv\Scripts\activate
+
+### 2️⃣ Configure Environment
+Create a `.env` file (see `.env.example`):
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+DATABASE_URL=sqlite:///db.sqlite3
+ALLOWED_HOSTS=127.0.0.1,localhost
 ```
-**Linux / macOS:**
-```bash
-source venv/bin/activate
-```
-## 4️⃣ Install Dependencies
+
+### 3️⃣ Install & Migrate
 ```bash
 pip install -r requirements.txt
-```
-## 5️⃣ Apply Migrations
-```bash
 python manage.py migrate
-```
-## 6️⃣ Run the Development Server
-```bash
 python manage.py runserver
 ```
-## 🌐 Open in Browser
-
-Once the server is running, you can access the application at:
-
-👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
 
 ---
 
-### 🛠 Troubleshooting Connection
-If the page doesn't load, ensure that:
-1. Your virtual environment is still **activated**.
-2. You have run the `python manage.py runserver` command without errors.
-3. No other application is using port **8000**.
+## 🐳 Docker Deployment
 
----
+The project is fully dockerized for production-ready deployment:
 
-## 🔁 Usage
-
-### 👨‍🏫 Publisher
-* **Register / Login:** Create and manage your account.
-* **Upload:** Simply paste YouTube course links.
-* **Automatic Embedding:** Your courses are instantly ready for students.
-
-### 👨‍🎓 Student
-* **Register / Login:** Create your learning profile.
-* **Browse:** Explore all available courses.
-* **Enroll & Track:** Enroll in courses and track your watch progress.
-* **Earn Certificates:** Complete courses to automatically generate your personalized certificate.
-* **Save:** Keep your favorite courses in your library.
-* **Watch:** Learn inside the platform with seamless "resume where you left off" tracking.
-
----
-
-## 📺 YouTube Embedding Logic
-
-### ✅ Supported URLs
-The platform supports standard and shortened YouTube links:
-* `https://www.youtube.com/watch?v=VIDEO_ID`
-* `https://youtu.be/VIDEO_ID`
-
-### 🔄 Automatic Conversion
-The system automatically converts links to the embed-friendly format:
-* `https://www.youtube.com/embed/VIDEO_ID`
-
-> [!CAUTION]
-> **Note:** If a creator has disabled embedding, a "Watch on YouTube" fallback link is automatically displayed.
-
----
-
-## ⚠️ Limitations
-* No payment gateway integration.
-* Restricted by YouTube's specific video embedding settings.
-
----
-
-## 🚧 Future Enhancements
-- [ ] **Search & Filters:** Find courses by keyword.
-- [ ] **Organization:** Categories and tags for easier navigation.
-- [ ] **Feedback:** Comments and star ratings.
-- [ ] **Deployment:** Hosting on Render or Railway.
-- [ ] **Database:** Transition to PostgreSQL support.
+```bash
+docker-compose up --build
+```
 
 ---
 
@@ -211,12 +111,6 @@ This project is licensed under the **MIT License**.
 
 ---
 
-## 👤 Contact
-
-**Prajwal Itnal** *Computer Applications Student | Data Enthusiast*
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/prajwal-itnal/)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PrajwalItnal))
-[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:prajwalitnal20@gmail.com)
-
----
+## 👤 Author
+**Prajwal Itnal**  
+*Computer Applications Student | Data Enthusiast*

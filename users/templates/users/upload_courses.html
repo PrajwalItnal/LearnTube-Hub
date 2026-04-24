@@ -1,122 +1,79 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Upload Course{% endblock %}
+{% block title %}Upload Course - LearnTube Hub{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/upload.css' %}">
+<style>
+    .upload-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .upload-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 1.5rem;
+        padding: 3rem;
+        box-shadow: var(--box-shadow);
+    }
+    .form-group { margin-bottom: 2rem; }
+    .form-label { display: block; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input { 
+        width: 100%; 
+        padding: 1rem 1.25rem; 
+        border: 1px solid var(--border-subtle); 
+        border-radius: 0.75rem; 
+        background: var(--bg-main); 
+        color: var(--text-main); 
+        font-family: inherit; 
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 65, 158, 0.1); }
+    .status-msg { margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; min-height: 1.25rem; }
+    .help-msg { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="upload-wrapper">
-    <a href="{% url 'users:profile' username=user.username %}" class="back-link">
-        ← Back to Profile
-    </a>
+<div class="upload-container">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main);">Publish New Course</h1>
+        <p style="color: var(--text-muted);">Share your knowledge with thousands of students on LearnTube Hub.</p>
+    </div>
 
-    <div class="upload-box">
-        <h1 class="upload-title">🎬 Share Your Knowledge</h1>
-        <p class="upload-subtitle">Create and upload a new course for our learning community</p>
-
-        <form method="post" enctype="multipart/form-data" class="upload-form">
+    <div class="upload-card glass">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- Error Messages -->
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {% for error in form.non_field_errors %}
-                        <p class="error-text">{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <!-- Course Title Field -->
             <div class="form-group">
-                <label for="id_title" class="form-label">
-                    Course Title <span class="required">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    name="title" 
-                    id="id_title"
-                    class="form-input"
-                    placeholder="Enter an engaging course title"
-                    required>
-                {% if form.title.errors %}
-                    <div class="field-error">
-                        {% for error in form.title.errors %}
-                            <p class="error-text">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <small class="help-text">Make it clear, concise, and descriptive</small>
+                <label class="form-label" for="id_title">Course Title</label>
+                <input type="text" name="title" id="id_title" class="form-input" placeholder="e.g. Master React.js in 2 Hours" required>
+                <p class="help-msg">Give your course a catchy name that describes the content.</p>
             </div>
 
-            <!-- Description Field -->
             <div class="form-group">
-                <label for="id_description" class="form-label">
-                    Description <span class="required">*</span>
-                </label>
-                <textarea 
-                    name="description" 
-                    id="id_description"
-                    class="form-input form-textarea"
-                    placeholder="Describe what students will learn from this course..."
-                    rows="5"
-                    required></textarea>
-                {% if form.description.errors %}
-                    <div class="field-error">
-                        {% for error in form.description.errors %}
-                            <p class="error-text">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <small class="help-text">Include key topics and learning outcomes</small>
+                <label class="form-label" for="id_description">Course Description</label>
+                <textarea name="description" id="id_description" class="form-input" style="min-height: 120px;" placeholder="What will students learn in this course?" required></textarea>
+                <p class="help-msg">A detailed description helps students find your course more easily.</p>
             </div>
 
-            <!-- YouTube Link Field -->
             <div class="form-group">
-                <label for="id_video_url" class="form-label">
-                    YouTube Link <span class="required">*</span>
-                </label>
-                <div class="input-with-icon">
-                    <span class="input-icon">🎥</span>
-                    <input 
-                        type="url" 
-                        name="video_url" 
-                        id="id_video_url"
-                        class="form-input"
-                        placeholder="https://www.youtube.com/watch?v=..."
-                        required>
-                </div>
-                {% if form.video_url.errors %}
-                    <div class="field-error">
-                        {% for error in form.video_url.errors %}
-                            <p class="error-text">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <small class="help-text">Paste the full YouTube video URL</small>
-                <div id="url-status" style="margin-top: 8px; font-size: 0.85rem; font-weight: 700; display: none;"></div>
+                <label class="form-label" for="id_video_url">YouTube Video URL</label>
+                <input type="url" name="video_url" id="id_video_url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." required>
+                <div id="url-status" class="status-msg"></div>
+                <p class="help-msg">Paste the link to your YouTube video. We'll verify it automatically.</p>
             </div>
 
-            <button type="submit" class="btn btn-submit" id="submit-btn" disabled>
-                <span class="btn-icon">📤</span>
-                <span class="btn-text">Upload Course</span>
+            <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%; padding: 1rem;" disabled>
+                Publish Course
             </button>
-
-            <div class="info-box">
-                <h4 class="info-title">📋 Before you upload:</h4>
-                <ul class="info-list">
-                    <li>Make sure your YouTube link is publicly accessible</li>
-                    <li>Write a clear and descriptive title</li>
-                    <li>Provide detailed course description</li>
-                    <li>Ensure the video quality is good</li>
-                </ul>
-            </div>
         </form>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     const urlInput = document.getElementById('id_video_url');
     const statusDiv = document.getElementById('url-status');
@@ -128,34 +85,32 @@
         const url = urlInput.value.trim();
 
         if (!url) {
-            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '';
             submitBtn.disabled = true;
             return;
         }
 
-        statusDiv.style.display = 'block';
-        statusDiv.style.color = '#718096';
-        statusDiv.innerHTML = '🔍 Checking video...';
+        statusDiv.style.color = 'var(--text-muted)';
+        statusDiv.innerHTML = '🔍 Checking availability...';
 
         timeout = setTimeout(() => {
             fetch(`/validate-youtube-url/?url=${encodeURIComponent(url)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.exists) {
-                        statusDiv.style.color = '#22c55e';
-                        statusDiv.innerHTML = '✅ Video Found & Valid';
+                        statusDiv.style.color = '#10b981';
+                        statusDiv.innerHTML = '✅ Valid YouTube Video Found';
                         submitBtn.disabled = false;
                     } else {
                         statusDiv.style.color = '#ef4444';
-                        statusDiv.innerHTML = '❌ Video Not Found or Private';
+                        statusDiv.innerHTML = '❌ Video Invalid, Private or Embedded disabled';
                         submitBtn.disabled = true;
                     }
                 })
                 .catch(err => {
-                    console.error('Validation error:', err);
-                    statusDiv.innerHTML = '⚠️ Validation failed (Checking again later)';
+                    statusDiv.innerHTML = '⚠️ Error validating URL';
                 });
-        }, 800); // 800ms debounce
+        }, 500); 
     });
 </script>
 {% endblock %}

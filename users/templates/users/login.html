@@ -1,45 +1,44 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Login - LearnTube Hub{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-{% endblock %}
+
 
 {% block content %}
-<div class="login-wrapper">
-    <div class="login-box">
-        <h1>Welcome Back</h1>
-        <p>Please enter your credentials to access your account.</p>
+<div class="login-page-container">
+    <div class="auth-card card glass">
+        <div class="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Access your personalized learning dashboard.</p>
+        </div>
 
-        <form action="{% url 'users:login' %}" method="post" class="login-form">
+        {% if form.non_field_errors %}
+            <div class="alert-error">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <form action="{% url 'users:login' %}" method="post">
             {% csrf_token %}
-            
             {% for field in form %}
                 <div class="form-group">
                     {{ field.label_tag }}
                     {{ field }}
-                    {% if field.errors %}
-                        <div class="field-error">
-                            {% for error in field.errors %}
-                                <p class="error-text">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    {% if field.help_text %}
-                        <small class="help-text">{{ field.help_text|safe }}</small>
-                    {% endif %}
+                    {% for error in field.errors %}
+                        <p style="color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</p>
+                    {% endfor %}
                 </div>
             {% endfor %}
 
-            <button type="submit" class="btn-submit">Login</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem; margin-top: 1rem;">
+                Login to Hub
+            </button>
         </form>
 
-        <p class="login-text">
-            Don't have an account? 
-            <a href="{% url 'users:signup' %}">Sign up here</a>
-        </p>
+        <div class="auth-footer">
+            New to LearnTube Hub? <a href="{% url 'users:signup' %}">Create account</a>
+        </div>
     </div>
 </div>
 {% endblock %}

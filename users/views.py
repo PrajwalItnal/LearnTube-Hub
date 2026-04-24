@@ -4,11 +4,16 @@ from .forms import CustomSignupForm, CourseForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.utils import timezone
 from .models import Profile, Courses, Enrollment, Certificate
+from .services import (
+    check_youtube_video, 
+    create_user_profile, 
+    enroll_student_in_course, 
+    update_course_progress
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models import Q
-import urllib.request
 import json
 from functools import wraps
 
@@ -39,10 +44,7 @@ def signup(request):
             role = form.cleaned_data['role']
             user_bio = form.cleaned_data['bio']
             auth_login(request, user)
-            if role == 'student':
-                Profile.objects.create(user=user, bio=user_bio, is_student=True, is_publisher=False)
-            else:
-                Profile.objects.create(user=user, bio=user_bio, is_student=False, is_publisher=True)
+            create_user_profile(user, user_bio, role)
             return redirect('users:profile', username=user.username)
     else:
         form = CustomSignupForm()
@@ -119,25 +121,6 @@ def logout_view(request):
     return redirect('users:login')
 
 
-def check_youtube_video(url):
-    """Checks if a YouTube video exists using the built-in urllib."""
-    try:
-        # We ensure the URL uses https
-        if url.startswith('http://'):
-            url = url.replace('http://', 'https://', 1)
-        
-        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
-        
-        # We add a User-Agent to avoid being blocked
-        req = urllib.request.Request(oembed_url, headers={'User-Agent': 'Mozilla/5.0'})
-        
-        with urllib.request.urlopen(req, timeout=5) as response:
-            return response.getcode() == 200
-    except Exception as e:
-        print(f"Validation Error: {e}")
-        # If we can't reach YouTube, we allow it but warn in logs
-        return True
-
 @login_required
 def validate_youtube_url(request):
     """AJAX endpoint to check video existence."""
@@ -195,16 +178,23 @@ def course_list(request, username):
     enrolled_course_ids = []
     completed_course_ids = []
     enrollment_progress = {}
+    last_timestamps = {}
+    featured_course = None
 
     if request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.is_student:
-        enrollments = Enrollment.objects.filter(student=request.user.profile)
+        enrollments = Enrollment.objects.filter(student=request.user.profile).order_by('-updated_at')
+        
+        # Identification of the most recently active course (Continue Learning)
+        recent_enrollment = enrollments.filter(is_completed=False).first()
+        if recent_enrollment:
+            featured_course = recent_enrollment.course
+            featured_course.user_progress = recent_enrollment.progress_percent
+            featured_course.last_timestamp = recent_enrollment.last_timestamp
+            featured_course.is_enrolled = True
+
         enrolled_course_ids = [e.course.id for e in enrollments]
         completed_course_ids = [e.course.id for e in enrollments if e.is_completed]
         enrollment_progress = {e.course.id: e.progress_percent for e in enrollments}
-
-    # Pre-fetch timestamps to avoid N+1 query bug
-    last_timestamps = {}
-    if request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.is_student:
         last_timestamps = {e.course.id: e.last_timestamp for e in enrollments}
 
     # Attach data directly to course objects
@@ -216,6 +206,7 @@ def course_list(request, username):
 
     return render(request, 'users/posts.html', {
         'courses': courses,
+        'featured_course': featured_course,
         'username': username,
         'enrolled_course_ids': enrolled_course_ids,
         'completed_course_ids': completed_course_ids,
@@ -280,15 +271,18 @@ def enroll_course(request, course_id):
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
-    enrollment, created = Enrollment.objects.get_or_create(student=profile, course=course)
+    enrollment, result = enroll_student_in_course(profile, course)
 
-    if created:
+    if result == "success":
         return JsonResponse({
             'status': 'success',
             'message': 'Enrolled successfully',
             'enrolled_at': enrollment.enrolled_at.strftime('%b %d, %Y'),
         })
-    return JsonResponse({'status': 'info', 'message': 'Already enrolled'})
+    elif result == "already_enrolled":
+        return JsonResponse({'status': 'info', 'message': 'Already enrolled'})
+    
+    return JsonResponse({'status': 'error', 'message': result}, status=403)
 
 
 @login_required
@@ -326,46 +320,27 @@ def update_view_time(request, course_id):
     course = get_object_or_404(Courses, id=course_id)
     profile = request.user.profile
 
-    try:
-        # Security: Fetch only the enrollment belonging to the authenticated student
-        enrollment = Enrollment.objects.get(student=profile, course=course)
-        
-        # Check if duration is provided in the request and not yet set in DB
-        new_duration = request.POST.get('duration')
-        if new_duration and course.duration == 0:
-            course.duration = int(new_duration)
-            course.save()
+    time_added = request.POST.get('time_added', 0)
+    current_time = request.POST.get('current_time')
+    duration = request.POST.get('duration')
 
-        time_added = int(request.POST.get('time_added', 0))
-        enrollment.view_time += time_added
-        
-        # Capture the current video timestamp for resume
-        current_time = request.POST.get('current_time')
-        if current_time:
-            enrollment.last_timestamp = int(float(current_time))
+    enrollment, error = update_course_progress(
+        profile, 
+        course, 
+        time_added, 
+        current_time=current_time, 
+        duration=duration
+    )
 
-        # Completion threshold: depends on actual duration
-        # If duration is still 0 (wait for first detection), use fallback of 60s
-        threshold = course.duration if course.duration > 0 else 60
-        
-        enrollment.progress_percent = min(100, int((enrollment.view_time / threshold) * 100))
+    if error:
+        return JsonResponse({'status': 'error', 'message': error}, status=400)
 
-        if enrollment.view_time >= threshold and not enrollment.is_completed:
-            enrollment.is_completed = True
-            enrollment.completed_at = timezone.now()
-            enrollment.progress_percent = 100
-            Certificate.objects.get_or_create(enrollment=enrollment)
-
-        enrollment.save()
-
-        return JsonResponse({
-            'status': 'success',
-            'view_time': enrollment.view_time,
-            'progress_percent': enrollment.progress_percent,
-            'is_completed': enrollment.is_completed,
-        })
-    except Enrollment.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Not enrolled'}, status=400)
+    return JsonResponse({
+        'status': 'success',
+        'view_time': enrollment.view_time,
+        'progress_percent': enrollment.progress_percent,
+        'is_completed': enrollment.is_completed,
+    })
 
 
 # ─── Certificate Views ─────────────────────────────────────────────────────────

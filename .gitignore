@@ -33,3 +33,21 @@ Thumbs.db
 # Logs
 # =========================
 *.log
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+
+# =========================
+# Collected Static Files
+# =========================
+assets/static/
+assets/media/
+
+# =========================
+# Scratch / Temp Files
+# =========================
+scratch/
+git_info.txt
+TODO.md

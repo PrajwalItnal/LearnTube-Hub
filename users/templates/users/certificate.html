@@ -138,6 +138,16 @@
         letter-spacing: 1px;
     }
 
+    /* QR Code */
+    .cert-qr {
+        position: absolute;
+        top: 50px;
+        right: 60px;
+        width: 100px;
+        height: 100px;
+        opacity: 0.8;
+    }
+
     /* Certificate ID */
     .cert-id {
         margin-top: 20px;
@@ -239,6 +249,9 @@
 {% block content %}
 <div class="certificate-page">
     <div class="certificate-card">
+        <div class="cert-qr">
+            <img id="qr-code-img" src="" alt="QR Code" style="width: 100%;">
+        </div>
         <h1 class="cert-header">Certificate of Completion</h1>
         <p class="cert-subheader">This is to proudly certify that</p>
 
@@ -299,9 +312,12 @@
 </div>
 
 <script>
+    // Generate QR Code for verification link
+    const verifyUrl = "{{ request.build_absolute_uri }}{% url 'users:verify_certificate' cert_uuid=certificate.certificate_id %}";
+    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
+
     function copyVerifyLink() {
-        const url = document.getElementById('verify-url').href;
-        navigator.clipboard.writeText(url).then(() => {
+        navigator.clipboard.writeText(verifyUrl).then(() => {
             const toast = document.getElementById('copy-toast');
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2200);

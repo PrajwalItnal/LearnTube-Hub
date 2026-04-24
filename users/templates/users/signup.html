@@ -1,45 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Signup{% endblock %}
+{% block title %}Join LearnTube Hub{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
-{% endblock %}
+
 
 {% block content %}
-<div class="signup-wrapper">
-    <div class="signup-box">
-        <h1>Create Account</h1>
-        <p>Join our E-Learning community</p>
+<div class="login-page-container">
+    <div class="auth-card card glass">
+        <div class="auth-header">
+            <h1>Create Your Account</h1>
+            <p>Join the community of learners and publishers.</p>
+        </div>
 
-        <form action="{% url 'users:signup' %}" method="post" class="signup-form">
+        <form action="{% url 'users:signup' %}" method="post">
             {% csrf_token %}
-            
             {% for field in form %}
                 <div class="form-group">
                     {{ field.label_tag }}
                     {{ field }}
-                    {% if field.errors %}
-                        <div class="field-error">
-                            {% for error in field.errors %}
-                                <p class="error-text">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    {% for error in field.errors %}
+                        <p style="color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</p>
+                    {% endfor %}
                     {% if field.help_text %}
-                        <small class="help-text">{{ field.help_text|safe }}</small>
+                        <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem;">{{ field.help_text|safe }}</p>
                     {% endif %}
                 </div>
             {% endfor %}
-            
-            <button type="submit" class="btn-submit">Sign Up</button>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem; margin-top: 1rem;">
+                Get Started
+            </button>
         </form>
 
-        <p class="login-text">
-            Already have an account? 
-            <a href="{% url 'users:login' %}">Login</a>
-        </p>
+        <div class="auth-footer">
+            Already a member? <a href="{% url 'users:login' %}">Sign in</a>
+        </div>
     </div>
 </div>
 {% endblock %}
