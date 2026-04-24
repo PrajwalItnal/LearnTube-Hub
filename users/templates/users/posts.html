@@ -1,571 +1,610 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Course Posts{% endblock %}
+{% block title %}Explore Courses - LearnTube Hub{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/courses.css' %}">
-    <style>
-        /* Progress bar */
-        .progress-wrapper {
-            padding: 0 1.5rem;
-            margin-top: 0.75rem;
-        }
-        .progress-bar-track {
-            background: #e2e8f0;
-            border-radius: 999px;
-            height: 8px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: width 0.5s ease;
-        }
-        .progress-bar-fill.completed {
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-        }
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            color: #718096;
-            margin-top: 4px;
-        }
+<style>
+    .courses-explore-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeIn 0.5s ease;
+    }
 
-        /* Enrollment status badge */
-        .enrollment-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 999px;
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 2;
-        }
-        .enrollment-badge.enrolled {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        .enrollment-badge.completed {
-            background: #dcfce7;
-            color: #15803d;
-        }
+    .hero-continue {
+        background: #2563eb;
+        background: radial-gradient(at 0% 0%, #3b82f6 0, transparent 50%), 
+                    radial-gradient(at 100% 0%, #1d4ed8 0, transparent 50%), 
+                    radial-gradient(at 50% 100%, #1e40af 0, transparent 50%);
+        background-color: var(--primary);
+        padding: 2rem;
+        border-radius: 28px;
+        margin-bottom: 3rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2.5rem;
+        color: #ffffff;
+        box-shadow: 0 20px 50px rgba(37, 99, 235, 0.4);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
 
-        /* Enroll / Unenroll buttons */
-        .btn-enroll {
-            background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-            color: white;
-        }
-        .btn-enroll:hover:not(:disabled) {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
-        }
-        .btn-enrolled {
-            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
-            color: white;
-            cursor: default;
-        }
-        .btn-unenroll {
-            background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
-            color: white;
-        }
-        .btn-unenroll:hover {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
-        }
-        .btn-success {
-            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
-            color: white;
-        }
-        .btn-success:hover {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
-        }
-        .btn-cert-link {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: white;
-        }
-        .btn-cert-link:hover {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
-        }
+    .hero-continue::before {
+        content: "";
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        animation: rotateGlow 10s linear infinite;
+        pointer-events: none;
+    }
 
-        /* My Certificates nav link */
-        .header-right .btn-cert-nav {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            color: #7c2d12;
-        }
-        .header-right .btn-cert-nav:hover {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
+    @keyframes rotateGlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 
-        .course-actions {
-            flex-wrap: wrap;
-        }
+    .hero-video {
+        flex: 0 0 320px;
+        aspect-ratio: 16/9;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        position: relative;
+        z-index: 2;
+    }
 
-        /* Search Bar Styles */
-        .search-outer-container {
-            margin: 0 auto 40px;
-            max-width: 800px;
-            width: 100%;
-        }
-        .search-form {
-            display: flex;
-            align-items: center;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            border: 2px solid transparent;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .search-form:focus-within {
-            border-color: #667eea;
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.15);
-            transform: translateY(-2px);
-        }
-        .search-input {
-            flex: 1;
-            border: none;
-            padding: 12px 15px;
-            font-size: 1.05rem;
-            outline: none;
-            background: transparent;
-            font-family: inherit;
-            color: #2d3748;
-        }
-        .search-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: inherit;
-        }
-        .search-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .clear-search-link {
-            margin-right: 15px;
-            color: #a0aec0;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-        .clear-search-link:hover { color: #e53e3e; }
-    </style>
+    .hero-content {
+        flex: 1 1 350px;
+        min-width: 320px;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(8px);
+        padding: 1.5rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        letter-spacing: 2px;
+        font-weight: 900;
+        background: var(--primary-dark);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 100px;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .hero-video iframe {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        border: none;
+    }
+
+    .hero-video-controls {
+        position: absolute;
+        bottom: 12px; left: 50%;
+        transform: translateX(-50%);
+        display: flex; gap: 8px;
+        z-index: 10;
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .hero-video:hover .hero-video-controls, .course-image:hover .hero-video-controls { opacity: 1; }
+    
+    .hero-video-controls button {
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .hero-video-controls button:hover { background: var(--primary); border-color: var(--primary); }
+
+    .hero-label::before {
+        content: "🔥";
+        font-size: 0.8rem;
+    }
+
+    .progress-hero-container {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .progress-hero-track {
+        flex: 1;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 100px;
+        overflow: hidden;
+    }
+    .progress-hero-fill {
+        height: 100%;
+        background: #ffffff;
+        border-radius: 100px;
+    }
+
+    .courses-grid-enhanced {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+    }
+
+    .course-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        border: 1px solid var(--border-subtle);
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .course-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--box-shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .course-image {
+        width: 100%;
+        aspect-ratio: 16/9;
+        background: #000;
+        position: relative;
+    }
+
+    .course-image iframe {
+        position: absolute; width: 100%; height: 100%; border: none;
+    }
+
+    .course-content { padding: 1.75rem; flex: 1; display: flex; flex-direction: column; }
+    .course-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 600; }
+    
+    .course-title-link {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-main);
+        text-decoration: none;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+    }
+
+    .course-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .enrollment-status {
+        position: absolute; top: 1rem; right: 1rem;
+        background: var(--primary); color: white;
+        padding: 0.4rem 1rem; border-radius: 999px;
+        font-size: 0.75rem; font-weight: 700; z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .enrollment-status.completed { background: #10b981; }
+
+    .progress-pill {
+        height: 8px; background: var(--bg-body);
+        border-radius: 999px; margin-bottom: 1rem; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: var(--primary); transition: width 1s linear; }
+
+    .btn-loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="courses-wrapper">
-    <!-- Header -->
-    <header class="courses-header">
-        <div class="header-content">
-            <div class="header-left">
-                <h1 class="header-title">Hello, {{ user.username }} 👋</h1>
-                <p class="header-subtitle">Explore and learn from amazing courses</p>
-            </div>
-            <div class="header-right">
-                {% if user.profile.is_student %}
-                    <a href="{% url 'users:my_certificates' %}" class="btn btn-cert-nav">
-                        🎓 My Certificates
-                    </a>
-                {% endif %}
-                <a href="{% url 'users:profile' username=user.username %}" class="btn btn-secondary">
-                    Profile
-                </a>
-                <form method="POST" action="{% url 'users:logout' %}" class="logout-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-logout">Logout</button>
-                </form>
+<div class="courses-explore-page">
+
+    {% if featured_course and not request.GET.q %}
+    <!-- Flow Optimization: Continue Learning Section -->
+    <div class="hero-continue" id="hero-card-{{ featured_course.id }}" data-initial-progress="{{ featured_course.user_progress }}">
+        <div class="hero-video">
+            <iframe id="player-featured" 
+                src="{{ featured_course.replace_youtube_link }}?enablejsapi=1&origin={{ request.scheme }}://{{ request.get_host }}" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+            </iframe>
+            <!-- Quick Controls Overlay -->
+            <div class="hero-video-controls">
+                <button onclick="skipVideo({{ featured_course.id }}, -10)" title="Rewind 10s">⏪ 10s</button>
+                <button onclick="skipVideo({{ featured_course.id }}, 10)" title="Forward 10s">10s ⏩</button>
             </div>
         </div>
-    </header>
-
-    <div class="courses-container">
-        <!-- Search Bar -->
-        <div class="search-outer-container">
-            <form method="GET" action="{% url 'users:course_list' username=username %}" class="search-form">
-                <span style="font-size: 1.4rem; margin-left: 10px;">🔍</span>
-                <input 
-                    type="text" 
-                    name="q" 
-                    class="search-input" 
-                    placeholder="Find courses by name, topic, or publisher..." 
-                    value="{{ request.GET.q|default:'' }}">
-                
-                {% if request.GET.q %}
-                    <a href="{% url 'users:course_list' username=username %}" class="clear-search-link">✕ Clear</a>
-                {% endif %}
-                
-                <button type="submit" class="search-btn">
-                    Search
-                </button>
-            </form>
-        </div>
-
-        <!-- Section Title -->
-        <div class="section-header">
-            {% if request.GET.q %}
-                <h2 class="section-title">🔍 Search Results for "{{ request.GET.q }}" ({{ courses|length }})</h2>
-            {% elif courses|length %}
-                <h2 class="section-title">📚 Available Courses ({{ courses|length }})</h2>
-            {% else %}
-                <h2 class="section-title">📚 No Courses Available</h2>
-            {% endif %}
-        </div>
-
-        <!-- Courses Grid -->
-        {% if courses|length %}
-            <div class="courses-grid">
-                {% for course in courses %}
-                    <div class="course-item" id="course-{{ course.id }}">
-
-                        <!-- Enrollment badge -->
-                        {% if course.id in completed_course_ids %}
-                            <span class="enrollment-badge completed">✓ Completed</span>
-                        {% elif course.id in enrolled_course_ids %}
-                            <span class="enrollment-badge enrolled">📖 Enrolled</span>
-                        {% endif %}
-
-                        <!-- Course Card Header -->
-                        <div class="course-publisher">
-                            <span class="publisher-name">By {{ course.publisher.user.username }}</span>
-                            <span class="course-date">{{ course.created_at|date:"M d, Y" }}</span>
-                        </div>
-
-                        <!-- Course Title -->
-                        <h3 class="course-title">{{ course.title }}</h3>
-
-                        <!-- Video Container -->
-                        <div class="video-container">
-                                <iframe 
-                                    id="player-{{ course.id }}"
-                                    data-start-time="{{ course.last_timestamp }}"
-                                    src="{{ course.replace_youtube_link }}" 
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                    referrerpolicy="strict-origin-when-cross-origin"
-                                    allowfullscreen>
-                                </iframe>
-                        </div>
-
-                        <!-- Course Description -->
-                        <p class="course-description">{{ course.description }}</p>
-
-                        <!-- Progress Bar (for enrolled students) -->
-                        {% if user.profile.is_student and course.is_enrolled %}
-                            <div class="progress-wrapper" id="progress-wrap-{{ course.id }}">
-                                <div class="progress-bar-track">
-                                    <div class="progress-bar-fill {% if course.is_completed %}completed{% endif %}"
-                                         id="progress-fill-{{ course.id }}"
-                                         style="width: {{ course.user_progress }}%;">
-                                    </div>
-                                </div>
-                                <div class="progress-label">
-                                    <span>Progress</span>
-                                    <span id="progress-text-{{ course.id }}">
-                                        {{ course.user_progress }}%
-                                    </span>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <!-- Action Buttons -->
-                        <div class="course-actions">
-                            {% if user.profile.is_student %}
-                                <button 
-                                    id="btn-save-{{ course.id }}" 
-                                    class="btn btn-save {% if course in user.profile.saved_courses.all %}btn-saved{% endif %}"
-                                    onclick="saveCourse(this, {{ course.id }})"
-                                    data-url="{% url 'users:save_course' course_id=course.id %}"
-                                    {% if course in user.profile.saved_courses.all %}disabled{% endif %}>
-                                    {% if course in user.profile.saved_courses.all %}
-                                        ✓ Saved
-                                    {% else %}
-                                        💾 Save
-                                    {% endif %}
-                                </button>
-                                
-                                {% if course.id in completed_course_ids %}
-                                    <a href="{% url 'users:generate_certificate' course_id=course.id %}" target="_blank" class="btn btn-success">
-                                        🎓 Certificate
-                                    </a>
-                                {% elif course.id in enrolled_course_ids %}
-                                    <button class="btn btn-enrolled" disabled>✓ Enrolled</button>
-                                    <button
-                                        class="btn btn-unenroll"
-                                        onclick="unenrollCourse(this, {{ course.id }})"
-                                        data-url="{% url 'users:unenroll_course' course_id=course.id %}">
-                                        ✕ Unenroll
-                                    </button>
-                                {% else %}
-                                    <button 
-                                        id="btn-enroll-{{ course.id }}"
-                                        class="btn btn-enroll"
-                                        onclick="enrollCourse(this, {{ course.id }})"
-                                        data-url="{% url 'users:enroll_course' course_id=course.id %}">
-                                        📝 Enroll Now
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                            <a href="{{ course.video_url }}" target="_blank" class="btn btn-youtube">
-                                ▶ YouTube
-                            </a>
-                        </div>
-                    </div>
-                {% endfor %}
+        <div class="hero-content">
+            <span class="hero-label">Continue Learning</span>
+            <h2>{{ featured_course.title }}</h2>
+            <p style="opacity: 0.8; font-size: 0.85rem; margin-bottom: 1rem;">{{ featured_course.user_progress }}% complete — pick up where you left off.</p>
+            
+            <div class="progress-hero-container">
+                <div class="progress-hero-track">
+                    <div class="progress-hero-fill" style="width: {{ featured_course.user_progress }}%;"></div>
+                </div>
+                <span style="font-weight: 800; font-size: 0.85rem;">{{ featured_course.user_progress }}%</span>
             </div>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>No Courses Yet</h3>
-                <p>Check back soon for amazing courses from our publishers!</p>
+
+            <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem;">
+                <a href="{% url 'users:course_list' username=user.username %}" class="btn btn-primary" style="background: #ffffff; color: var(--primary); border: none; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Resume ▶</a>
+                <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.4); color: white; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Dashboard</a>
             </div>
-        {% endif %}
+        </div>
     </div>
+    {% endif %}
+
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main);">{% if request.GET.q %}Search Results
+                for "{{ request.GET.q }}"{% else %}Explore Courses{% endif %}</h1>
+            <p style="color: var(--text-muted);">Master new skills with YouTube-powered learning modules.</p>
+        </div>
+    </div>
+
+    {% if courses %}
+    <div class="courses-grid-enhanced">
+        {% for course in courses %}
+        <div class="course-card" id="card-{{ course.id }}" data-initial-progress="{{ course.user_progress }}">
+            <div class="enrollment-indicator">
+                {% if course.id in completed_course_ids %}
+                <span class="enrollment-status completed">Completed</span>
+                {% elif course.id in enrolled_course_ids %}
+                <span class="enrollment-status">Enrolled</span>
+                {% endif %}
+            </div>
+
+            <div class="course-image">
+                <!-- Thumbnail Fallback: Shown while IFrame loads or if it fails -->
+                <img src="https://img.youtube.com/vi/{{ course.video_id }}/maxresdefault.jpg" 
+                     alt="{{ course.title }}" 
+                     style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index: 1;">
+                
+                <iframe 
+                    id="player-{{ course.id }}" 
+                    data-start-time="{{ course.last_timestamp }}" 
+                    src="{{ course.replace_youtube_link }}?enablejsapi=1&origin={{ request.scheme }}://{{ request.get_host }}" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    style="position: absolute; top:0; left:0; width:100%; height:100%; border:none; z-index: 2;"
+                    allowfullscreen>
+                </iframe>
+                <!-- Quick Controls Overlay -->
+                <div class="hero-video-controls">
+                    <button onclick="skipVideo({{ course.id }}, -10)" title="Rewind 10s">⏪ 10s</button>
+                    <button onclick="skipVideo({{ course.id }}, 10)" title="Forward 10s">10s ⏩</button>
+                </div>
+            </div>
+
+            <div class="course-content">
+                <div class="course-meta">
+                    <span>By {{ course.publisher.user.username }}</span>
+                    <span>{{ course.created_at|date:"M Y" }}</span>
+                </div>
+                <a href="#" class="course-title-link">{{ course.title }}</a>
+                <p class="course-desc">{{ course.description }}</p>
+
+                <div class="progress-container" style="{% if not course.is_enrolled %}display:none;{% endif %}">
+                    <div class="progress-pill">
+                        <div class="progress-fill" style="width: {{ course.user_progress }}%;"></div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 1rem; color: var(--text-muted);">
+                        <span>Progress</span>
+                        <span class="progress-text">{{ course.user_progress }}%</span>
+                    </div>
+                </div>
+
+                <div class="card-actions" style="display: flex; gap: 0.75rem; margin-top: auto;">
+                    {% if user.profile.is_student %}
+                    <div class="main-btn-container" style="flex: 1;">
+                        {% if course.id in completed_course_ids %}
+                        <a href="{% url 'users:generate_certificate' course_id=course.id %}" target="_blank"
+                            class="btn btn-primary" style="width: 100%; background: #10b981;">
+                            Certificate 🎓
+                        </a>
+                        {% elif course.id in enrolled_course_ids %}
+                        <button class="btn btn-outline unenroll-btn" style="width: 100%;"
+                            onclick="handleEnrollment(this, {{ course.id }}, 'unenroll')"
+                            data-url="{% url 'users:unenroll_course' course_id=course.id %}">
+                            Unenroll
+                        </button>
+                        {% else %}
+                        <button class="btn btn-primary enroll-btn" style="width: 100%;"
+                            onclick="handleEnrollment(this, {{ course.id }}, 'enroll')"
+                            data-url="{% url 'users:enroll_course' course_id=course.id %}">
+                            Enroll Now
+                        </button>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-outline save-btn" style="padding: 0.625rem;"
+                        onclick="saveCourse(this, {{ course.id }})"
+                        data-url="{% url 'users:save_course' course_id=course.id %}">
+                        {% if course in user.profile.saved_courses.all %}❤️{% else %}🤍{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card glass" style="text-align: center; padding: 4rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+        <h3 style="margin-bottom: 0.5rem;">No courses found</h3>
+        <p style="color: var(--text-muted);">Try a different search or check back later.</p>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
+    // Optimized Flow: Enrollment & Save without Page Reload
+    function handleEnrollment(button, courseId, action) {
+        if (action === 'unenroll' && !confirm('Are you sure? Your progress will be lost.')) return;
+
+        button.classList.add('btn-loading');
+        const card = document.getElementById('card-' + courseId);
+
+        fetch(button.getAttribute('data-url'), {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(r => r.json())
+            .then(data => {
+                button.classList.remove('btn-loading');
+                if (data.status === 'success' || data.status === 'info') {
+                    const indicator = card.querySelector('.enrollment-indicator');
+                    const progressContainer = card.querySelector('.progress-container');
+                    const btnContainer = card.querySelector('.main-btn-container');
+
+                    if (action === 'enroll') {
+                        indicator.innerHTML = '<span class="enrollment-status">Enrolled</span>';
+                        progressContainer.style.display = 'block';
+                        btnContainer.innerHTML = `<button class="btn btn-outline" style="width: 100%;" onclick="handleEnrollment(this, ${courseId}, 'unenroll')" data-url="/course/${courseId}/unenroll/">Unenroll</button>`;
+                        initPlayer(courseId);
+                    } else {
+                        indicator.innerHTML = '';
+                        progressContainer.style.display = 'none';
+                        btnContainer.innerHTML = `<button class="btn btn-primary" style="width: 100%;" onclick="handleEnrollment(this, ${courseId}, 'enroll')" data-url="/course/${courseId}/enroll/">Enroll Now</button>`;
+                        delete players[courseId];
+                        activeCourseIds.delete(courseId);
+                    }
+                }
+            });
+    }
+
     function saveCourse(button, courseId) {
-        const saveUrl = button.getAttribute('data-url');
-        fetch(saveUrl, {
+        button.classList.add('btn-loading');
+        fetch(button.getAttribute('data-url'), {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
         })
-        .then(response => {
-            if (response.ok) {
-                button.disabled = true;
-                button.textContent = '✓ Saved';
-                button.classList.add('btn-saved');
-                button.classList.remove('btn-save');
-            } else {
-                alert('Error saving course.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error saving course.');
+        .then(r => r.json())
+        .then(d => { 
+            button.classList.remove('btn-loading');
+            button.innerHTML = d.action === 'added' ? '❤️' : '🤍'; 
         });
     }
 
-    function enrollCourse(button, courseId) {
-        const url = button.getAttribute('data-url');
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success' || data.status === 'info') {
-                location.reload();
-            } else {
-                alert(data.message || 'Error enrolling in course.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error enrolling in course.');
-        });
-    }
-
-    function unenrollCourse(button, courseId) {
-        if (!confirm('Are you sure you want to unenroll from this course? Your progress will be lost.')) {
-            return;
-        }
-        const url = button.getAttribute('data-url');
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload();
-            } else {
-                alert(data.message || 'Error unenrolling from course.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error unenrolling from course.');
-        });
-    }
-
-    // --- Smart Progress Tracking Logic ---
-    const trackingInterval = 10; // Ping every 10 seconds
-    const enrolledCourseIds = {{ enrolled_course_ids|safe|default:"[]" }};
-    const completedCourseIds = {{ completed_course_ids|safe|default:"[]" }};
-    
-    // Track which courses are currently playing
+    // YouTube Tracking Logic
+    const trackingInterval = 10;
+    const enrolledCourseIds = {{ enrolled_course_ids|default:"[]"|safe }};
+    const completedCourseIds = {{ completed_course_ids|default:"[]"|safe }};
     const activeCourseIds = new Set();
     const players = {};
     const lastTrackedTimes = {};
 
-    // Load YouTube API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    // Initializer for YouTube players
-    window.onYouTubeIframeAPIReady = function() {
-        enrolledCourseIds.forEach(courseId => {
-            // No need to track if already completed
-            if (completedCourseIds.includes(courseId)) return;
+    window.onYouTubeIframeAPIReady = function () {
+        // Init Grid players
+        enrolledCourseIds.forEach(id => initPlayer(id));
 
-            const iframeId = `player-${courseId}`;
-            const iframe = document.getElementById(iframeId);
-            
-            if (iframe) {
-                players[courseId] = new YT.Player(iframeId, {
+        // Featured player (Continue Learning)
+        const featuredIframe = document.getElementById('player-featured');
+        if (featuredIframe) {
+            const fId = 'player-featured';
+            const courseId = {{ featured_course.id|default:0 }};
+            if (courseId > 0) {
+                players[fId] = new YT.Player(fId, {
                     events: {
-                        'onReady': (event) => onPlayerReady(event, iframe.getAttribute('data-start-time')),
-                        'onStateChange': (event) => onPlayerStateChange(event, courseId)
+                        'onReady': (e) => {
+                            const start = {{ featured_course.last_timestamp|default:0 }};
+                            if (start > 0) { e.target.seekTo(start, true); e.target.pauseVideo(); }
+                            // Immediate progress bar update based on resume point
+                            const playerDuration = e.target.getDuration ? e.target.getDuration() : 0;
+                            if (playerDuration > 0 && start > 0) {
+                                const resumeProgress = Math.min(100, (start / playerDuration) * 100);
+                                const heroCard = document.getElementById('hero-card-{{ featured_course.id|default:0 }}');
+                                if (heroCard) {
+                                    heroCard.querySelector('.progress-hero-fill').style.width = resumeProgress.toFixed(2) + '%';
+                                    heroCard.querySelector('.progress-hero-container span').textContent = Math.round(resumeProgress) + '%';
+                                }
+                            }
+                        },
+                        'onStateChange': (e) => {
+                            if (e.data == YT.PlayerState.PLAYING) {
+                                if (!activeCourseIds.has(fId)) {
+                                    const start = {{ featured_course.last_timestamp|default:0 }};
+                                    if (start > 0 && e.target.getCurrentTime() < start - 2) e.target.seekTo(start, true);
+                                }
+                                activeCourseIds.add(fId);
+                            } else {
+                                activeCourseIds.delete(fId);
+                                saveSpecificProgress(fId, courseId);
+                            }
+                        }
                     }
                 });
             }
-        });
+        }
     };
 
-    function onPlayerReady(event, startTime) {
-        const courseId = event.target.getIframe().id.split('-')[1];
-        lastTrackedTimes[courseId] = startTime ? parseInt(startTime) : 0;
-        
-        if (startTime && parseInt(startTime) > 0) {
-            event.target.seekTo(parseInt(startTime), true);
+    function initPlayer(courseId) {
+        const iId = `player-${courseId}`;
+        const iframe = document.getElementById(iId);
+        if (iframe && !players[iId]) {
+            players[iId] = new YT.Player(iId, {
+                events: {
+                    'onReady': (e) => {
+                        const start = parseInt(iframe.getAttribute('data-start-time')) || 0;
+                        if (start > 0) { e.target.seekTo(start, true); e.target.pauseVideo(); }
+                        // Immediate progress bar update based on resume point
+                        const playerDuration = e.target.getDuration ? e.target.getDuration() : 0;
+                        if (playerDuration > 0 && start > 0) {
+                            const resumeProgress = Math.min(100, (start / playerDuration) * 100);
+                            const card = document.getElementById('card-' + courseId);
+                            if (card) {
+                                card.querySelector('.progress-fill').style.width = resumeProgress.toFixed(2) + '%';
+                                card.querySelector('.progress-text').textContent = Math.round(resumeProgress) + '%';
+                            }
+                        }
+                    },
+                    'onStateChange': (e) => {
+                        if (e.data == YT.PlayerState.PLAYING) {
+                            if (!activeCourseIds.has(iId)) {
+                                const start = parseInt(iframe.getAttribute('data-start-time')) || 0;
+                                if (start > 0 && e.target.getCurrentTime() < start - 2) e.target.seekTo(start, true);
+                            }
+                            activeCourseIds.add(iId);
+                        } else {
+                            activeCourseIds.delete(iId);
+                            saveSpecificProgress(iId, courseId);
+                        }
+                    }
+                }
+            });
         }
     }
 
-    function onPlayerStateChange(event, courseId) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            console.log(`Course ${courseId} is now PLAYING`);
-            activeCourseIds.add(courseId);
-        } else {
-            console.log(`Course ${courseId} is PAUSED/ENDED`);
-            activeCourseIds.delete(courseId);
-            
-            // Save progress immediately on pause
-            saveSpecificProgress(courseId);
+    function skipVideo(pId, seconds) {
+        const targetId = typeof pId === 'number' ? 'player-'+pId : pId;
+        const player = players[targetId] || players['player-featured'];
+        if (player && player.getCurrentTime) {
+            player.seekTo(player.getCurrentTime() + seconds, true);
         }
     }
 
-    function saveSpecificProgress(courseId) {
-        const player = players[courseId];
+    function saveSpecificProgress(pId, cId) {
+        const player = players[pId];
         if (!player || !player.getCurrentTime) return;
-
         const currentTime = Math.floor(player.getCurrentTime());
-        const url = `/course/${courseId}/update-view-time/`; 
         const formData = new FormData();
-        formData.append('time_added', 0); // No time 'added' on manual save
+        formData.append('time_added', 0);
         formData.append('current_time', currentTime);
-
-        fetch(url, {
+        fetch(`/course/${cId}/update-view-time/`, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Update anchor so the next heartbeat doesn't double count
-                lastTrackedTimes[courseId] = currentTime;
-            }
-        })
-        .catch(err => console.error('Immediate save failed:', err));
+        }).then(r => r.json()).then(d => { if (d.status === 'success') lastTrackedTimes[pId] = currentTime; });
     }
 
-    function updateAllProgress() {
-          activeCourseIds.forEach(courseId => {
-            const player = players[courseId];
-            if (!player || !player.getCurrentTime) return;
+    // Efficiency Fix: Smart Hybrid Progress (Resume-based seeding + Effort-based growth)
+    const localProgress = {}; 
 
-            const currentTime = Math.floor(player.getCurrentTime());
-            const lastTime = lastTrackedTimes[courseId] || 0;
+    setInterval(() => {
+        activeCourseIds.forEach(pId => {
+            const player = players[pId];
+            // Only increment if player is valid and actively playing (data == 1)
+            if (!player || !player.getDuration || !player.getPlayerState || player.getPlayerState() !== 1) return;
             
-            // Calculate how many actual seconds were watched
-            // We ignore jumps (seeking forward/backward) by capping the delta
-            let timeAdded = currentTime - lastTime;
+            const duration = player.getDuration();
+            if (duration <= 0) return;
+
+            const cId = pId === 'player-featured' ? '{{ featured_course.id }}' : pId.replace('player-', '');
             
-            // If the difference is negative or too large (e.g. skip), we treat as 0 added time
-            // but we still update the tracker anchor points.
-            if (timeAdded < 0 || timeAdded > (trackingInterval + 5)) {
-                timeAdded = 0;
+            // Seed logic: First time seeing this player?
+            if (localProgress[pId] === undefined) {
+                const card = document.getElementById('card-' + cId) || document.getElementById('hero-card-' + cId);
+                const initialProgress = parseFloat(card.getAttribute('data-initial-progress')) || 0;
+                const startTime = parseInt(card.querySelector('iframe').getAttribute('data-start-time')) || 0;
+                const resumeProgress = (startTime / duration) * 100;
+                
+                // Start with the higher of the two: Resume Point or Recorded Progress
+                localProgress[pId] = Math.max(initialProgress, resumeProgress);
             }
 
-            const url = `/course/${courseId}/update-view-time/`; 
+            // Standard 1s increment
+            localProgress[pId] = Math.min(100, localProgress[pId] + (1 / duration) * 100);
+            
+            const progress = localProgress[pId];
+            const card = document.getElementById('card-' + cId);
+            const heroCard = document.getElementById('hero-card-' + cId);
+            if (card) {
+                card.querySelector('.progress-fill').style.width = progress.toFixed(2) + '%';
+                card.querySelector('.progress-text').textContent = Math.round(progress) + '%';
+            }
+            if (heroCard) {
+                heroCard.querySelector('.progress-hero-fill').style.width = progress.toFixed(2) + '%';
+                heroCard.querySelector('.progress-hero-container span').textContent = Math.round(progress) + '%';
+            }
+        });
+    }, 1000);
+
+    // Data Integrity: Server Sync (Every 10s)
+    setInterval(() => {
+        activeCourseIds.forEach(pId => {
+            const player = players[pId];
+            if (!player || !player.getCurrentTime || !player.getDuration) return;
+            const cId = pId === 'player-featured' ? '{{ featured_course.id }}' : pId.replace('player-', '');
+            const currentTime = Math.floor(player.getCurrentTime());
+            const lastTime = lastTrackedTimes[pId] || currentTime;
+            const delta = currentTime - lastTime;
+            
+            // Only count time if user is moving forward naturally
+            const timeAdded = (delta > 0 && delta <= trackingInterval + 2) ? delta : 0;
+
             const formData = new FormData();
             formData.append('time_added', timeAdded);
             formData.append('current_time', currentTime);
-            
-            // Get duration if player is ready
-            const duration = Math.floor(player.getDuration());
-            if (duration > 0) {
-                formData.append('duration', duration);
-            }
+            if (player.getDuration() > 0) formData.append('duration', Math.floor(player.getDuration()));
 
-            fetch(url, {
+            fetch(`/course/${cId}/update-view-time/`, {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update our local anchor point
-                    lastTrackedTimes[courseId] = currentTime;
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'success') {
+                    lastTrackedTimes[pId] = currentTime;
+                    // Authority check: If server says we are further, jump to it
+                    if (d.progress_percent > localProgress[pId]) localProgress[pId] = d.progress_percent;
                     
-                    const fill = document.getElementById(`progress-fill-${courseId}`);
-                    if (fill) fill.style.width = `${data.progress_percent}%`;
-                    
-                    const label = document.querySelector(`#progress-wrap-${courseId} .progress-label span:last-child`);
-                    if (label) label.innerText = `${data.progress_percent}%`;
-
-                    if (data.is_completed) {
-                        location.reload();
+                    if (d.is_completed) {
+                        const card = document.getElementById('card-' + cId);
+                        const heroCard = document.getElementById('hero-card-' + cId);
+                        if (card) card.querySelector('.progress-fill').classList.add('completed');
+                        if (heroCard) heroCard.querySelector('.progress-hero-fill').classList.add('completed');
+                        activeCourseIds.delete(pId);
                     }
                 }
-            })
-            .catch(err => console.error('Progress update failed:', err));
+            });
         });
-    }
-
-    // Run heartbeat every 10 seconds
-    if (enrolledCourseIds.length > 0) {
-        setInterval(updateAllProgress, trackingInterval * 1000);
-    }
+    }, trackingInterval * 1000);
 </script>
 {% endblock %}
